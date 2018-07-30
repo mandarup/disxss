@@ -17,6 +17,7 @@ DATABASE_CONNECT_OPTIONS = {}
 
 CSRF_ENABLED = True
 CSRF_SESSION_KEY = ""
+WTF_CSRF_SESSION_KEY = ""
 
 # Customize and add the blow if you'd like to use recaptcha. SSL is enabled
 # by default and this is recaptcha v2: tap "I'm not a robot" checkbox instead
