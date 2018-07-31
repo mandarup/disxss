@@ -29,7 +29,7 @@ RECAPTCHA_PRIVATE_KEY = 'YOUR PRIVATE KEY HERE'
 
 BRAND = "reddit"
 DOMAIN = "YOUR_DOMAIN_HERE"
-ROOT_URL = "http://YOUR_URL_HERE"
+ROOT_URL = "localhost:8080" #"http://YOUR_URL_HERE"
 
 STATIC_ROOT = "/path/to/your/static/root/"
 STATIC_URL = ROOT_URL + "/static/"

@@ -32,7 +32,7 @@ def home_page(username=None):
 
     # TODO: port to mongodb query
     # user = User.query.filter_by(username=username).first()
-    user = User.objects.raw({'username': username}).first()
+    user = User.objects.raw({'username': username}).username#.first()
 
     if not user:
         abort(404)

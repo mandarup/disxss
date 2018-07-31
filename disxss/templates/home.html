@@ -8,6 +8,9 @@
         <br>
       {% endif %}
       <div class="spacer"></div>
+
+      <!--
+      {# TODO: enable threads after defining threads module
       {% for thread in thread_paginator.items %}
         <div name="{{ thread.id }}" class="row listing-row">
           <div class="col-lg-1 listing-vote-box">
@@ -65,6 +68,8 @@
             <li style="opacity:0.3;"><a>next</a></li>
         {% endif %}
       </ul>
+
+      #} -->
   {% endblock %}
 </div>
 

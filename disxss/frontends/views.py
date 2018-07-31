@@ -132,8 +132,9 @@ def login():
     if form.validate_on_submit():
         # continue where we left off if so
         # user = User.query.filter_by(email=form.email.data).first()
-        user = User.objects.raw({'email': form.email.data}).first()
-
+        user = User.objects.get({'email': form.email.data})#.first()
+        
+        app.logger.debug("user: {}".format(user))
 
         # we use werzeug to validate user's password
         if user and check_password_hash(user.password, form.password.data):

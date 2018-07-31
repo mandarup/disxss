@@ -14,6 +14,7 @@ from disxss.users import constants as USER
 from pymodm import MongoModel, EmbeddedMongoModel, fields, connect
 from pymodm.queryset import QuerySet
 from pymodm.manager import Manager
+from pymongo.write_concern import WriteConcern
 
 class UserQuerySet(QuerySet):
     pass
@@ -21,21 +22,21 @@ class UserQuerySet(QuerySet):
 #     # def __init__(self, *args, **kwargs):
 #     #     super().__init__(*args, **kwargs)
 #
-#     def active(self):
-#         '''Return only active users.'''
-#         return self.raw({"status": 1})
+    def active(self):
+        '''Return only active users.'''
+        return self.raw({"status": 1})
 
-    # def get_status(self):
-    #     """
-    #     returns string form of status, 0 = 'dead', 1 = 'alive'
-    #     """
-    #     return USER.STATUS[self.status]
-    #
-    # def get_role(self):
-    #     """
-    #     analogous to above but for roles
-    #     """
-    #     return USER.ROLE[self.role]
+    def get_status(self):
+        """
+        returns string form of status, 0 = 'dead', 1 = 'alive'
+        """
+        return USER.STATUS[self.status]
+
+    def get_role(self):
+        """
+        analogous to above but for roles
+        """
+        return USER.ROLE[self.role]
     #
     def get_thread_karma(self):
         """
@@ -92,6 +93,10 @@ class User(MongoModel):
     role = fields.IntegerField(default=USER.USER)
 
     objects = Manager.from_queryset( UserQuerySet)()
+
+    class Meta:
+        write_concern = WriteConcern(j=True)
+        connection_alias = 'disxss'
 
     # def __init__(self,
     #             # *args,
