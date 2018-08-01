@@ -8,14 +8,10 @@ from werkzeug.routing import BaseConverter
 import uuid
 from flask_wtf.csrf import CSRFError, CSRFProtect
 
-from pymodm import connect
+from flask import Flask
+from flask_pymongo import PyMongo
 
 from disxss import logging_config
-
-
-# Establish a connection to the database.
-connect('mongodb://localhost:27017/disxss')
-
 
 
 # Secret key used to encrypt session cookies.
@@ -31,6 +27,12 @@ app.config.from_object('config')
 # app.secret_key = app.config['SECRET_KEY']
 app.secret_key = SECRET_KEY
 # app.secret_key = CSRF_SESSION_KEY
+
+app.config["MONGO_URI"] = "mongodb://localhost:27017/disxss"
+mongo = PyMongo()
+mongo.init_app(app)
+db = mongo.db
+
 
 csrf = CSRFProtect()
 csrf.init_app(app)
