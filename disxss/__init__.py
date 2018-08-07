@@ -1,5 +1,14 @@
 
 
+from datetime import datetime
+from flask import Flask, abort, jsonify, request
+from flask_babel import Babel, gettext
+from bson import ObjectId
+from pymongo import MongoClient
+import marshmallow
+
+from umongo import Instance, Document, fields, ValidationError, set_gettext
+from umongo.marshmallow_bonus import SchemaFromUmongo
 
 
 from flask import (Blueprint, request, render_template, flash, g, session,
@@ -31,8 +40,13 @@ app.secret_key = SECRET_KEY
 app.config["MONGO_URI"] = "mongodb://localhost:27017/disxss"
 mongo = PyMongo()
 mongo.init_app(app)
-db = mongo.db
+# db = mongo.db
 
+db = MongoClient().disxss
+instance = Instance(db)
+babel = Babel()
+babel.init_app(app)
+set_gettext(gettext)
 
 csrf = CSRFProtect()
 csrf.init_app(app)
@@ -43,6 +57,19 @@ class RegexConverter(BaseConverter):
         self.regex = items[0]
 
 app.url_map.converters['regex'] = RegexConverter
+
+
+# available languages
+LANGUAGES = {
+    'en': 'English',
+    'fr': 'Français'
+}
+
+
+@babel.localeselector
+def get_locale():
+    return request.accept_languages.best_match(LANGUAGES.keys())
+
 
 @app.errorhandler(404)
 def not_found(error):

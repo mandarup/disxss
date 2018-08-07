@@ -29,9 +29,9 @@ bp = Blueprint('frontends', __name__, url_prefix='')
 def before_request():
     g.user = None
     if 'user_id' in session:
+        g.user = User.find_one({'id': session['user_id']})
         # g.user = User.query.get(session['user_id'])
-        g.user = User(document=users.find_one_or_404({'_id': ObjectId(session['user_id'])}))
-
+        # g.user = User(document=users.find_one_or_404({'_id': ObjectId(session['user_id'])}))
 
 def home_subreddit():
 
@@ -138,22 +138,28 @@ def login():
     if form.validate_on_submit():
         # continue where we left off if so
         # user = User.query.filter_by(email=form.email.data).first()
-        document = users.find_one_or_404({'email': form.email.data})#.first()
+        # document = users.find_one_or_404({'email': form.email.data})#.first()
+        user = User.find_one({'email': form.email.data})
+        app.logger.debug("finding email: {}".format(form.email.data))
         # user = edict(user)
 
-        user = User(document=document)
+        # user = User(document=document)
 
 
-        app.logger.debug("user: {}".format(user))
+
 
         # we use werzeug to validate user's password
         if user and check_password_hash(user.password, form.password.data):
             # the session can't be modified as it's signed,
             # it's a safe place to store the user id
-            session['user_id'] = user._id
+            app.logger.debug("user: {}".format(user.username))
+
+            session['user_id'] = str(user.id)
 
             if 'next' in request.form and request.form['next']:
                 return redirect(request.form['next'])
+
+            flash('You were successfully logged in')
             return redirect(url_for('frontends.home'))
 
         flash('Wrong email or password', 'danger')
@@ -210,14 +216,17 @@ def register():
         #         modified_at=modified_at
         #         ).save()
 
-        userdoc = {'username':form.username.data,
+        data = {'username':form.username.data,
                 'email':form.email.data,
                 'password':password,
                 # 'created_at':created_at,
                 # 'modified_at':modified_at
                 }
 
-        user = User(**userdoc).save()
+        # user = User(**userdoc).save()
+        User.ensure_indexes()
+        user = User(**data)
+        user.commit()
 
         # user_id = db.users.insert_one(post).inserted_id
 
@@ -228,8 +237,8 @@ def register():
 
         # Log the user in, as he now has an id
         app.logger.debug("username: {}".format(user.username))
-        # session['user_id'] = json_util.dumps({"user_id":user._id})["user_id"]
-        session["user_id"] = str(user._id)
+        # session['user_id'] = json_util.dumps({"user_id":user.id})["user_id"]
+        session["user_id"] = str(user.id)
         app.logger.debug("user_id: {}".format(session['user_id']))
 
         app.logger.debug("csrf_token: {}".format(form.csrf_token.data))
