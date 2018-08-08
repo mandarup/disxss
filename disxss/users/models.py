@@ -19,7 +19,8 @@ from disxss import db
 from disxss import app
 from disxss import instance
 
-users = db.users
+
+# users = db.users
 
 
 # class UserQuerySet(QuerySet):
