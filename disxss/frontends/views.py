@@ -4,11 +4,13 @@
 
 import flask
 from flask import (Blueprint, request, render_template, flash,
-    g, session, redirect, url_for)
+    g, session, redirect, url_for, jsonify)
 from werkzeug import check_password_hash, generate_password_hash
 import datetime
 from easydict import EasyDict as edict
 from bson import json_util, ObjectId
+
+from umongo import ValidationError
 
 # from disxss import db
 from disxss.users.forms import RegisterForm, LoginForm
@@ -21,7 +23,7 @@ from disxss import app
 
 from disxss import db
 
-users = db.users
+# users = db.users
 
 bp = Blueprint('frontends', __name__, url_prefix='')
 
@@ -145,9 +147,6 @@ def login():
 
         # user = User(document=document)
 
-
-
-
         # we use werzeug to validate user's password
         if user and check_password_hash(user.password, form.password.data):
             # the session can't be modified as it's signed,
@@ -159,10 +158,14 @@ def login():
             if 'next' in request.form and request.form['next']:
                 return redirect(request.form['next'])
 
-            flash('You were successfully logged in')
+            flash('You are logged in', 'success')
             return redirect(url_for('frontends.home'))
 
-        flash('Wrong email or password', 'danger')
+        elif not user:
+            flash("You haven't signed up, please register", 'danger')
+            return redirect(url_for('frontends.register'))
+        else:
+            flash('Wrong email or password', 'danger')
     return render_template("login.html", form=form, next=next)
 
 @bp.route('/logout/', methods=['GET', 'POST'])
@@ -225,8 +228,17 @@ def register():
 
         # user = User(**userdoc).save()
         User.ensure_indexes()
-        user = User(**data)
-        user.commit()
+
+        try:
+            user = User(**data)
+            user.commit()
+        except ValidationError as e:
+            app.logger.error(str(e))
+            flash(str(e), 'danger')
+            return redirect(url_for('frontends.register'))
+
+        # User(**data).commit()
+        # user = User.find_one({'email': data['email']})
 
         # user_id = db.users.insert_one(post).inserted_id
 
