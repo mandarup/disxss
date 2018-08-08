@@ -280,7 +280,40 @@ class User(Document):
         return super(User, self).update(*args, **kwargs)
 
     class Meta:
-        collection = db.users
+        collection = db.user
+
+    def get_thread_karma(self):
+        """
+        fetch the number of votes this user has had on his/her threads
+
+        1.) Get id's of all threads by this user
+
+        2.) See how many of those threads also were upvoted but not by
+        the person him/her self.
+        """
+        # thread_ids = [t.id for t in self.threads]
+        # select = thread_upvotes.select(db.and_(
+        #         thread_upvotes.c.thread_id.in_(thread_ids),
+        #         thread_upvotes.c.user_id != self.id
+        #     )
+        # )
+        # rs = db.engine.execute(select)
+        # return rs.rowcount
+        # TODO
+
+        return 0
+
+    def get_comment_karma(self):
+        """
+        fetch the number of votes this user has had on his/her comments
+
+        """
+        # TODO
+
+        return 0
+
+    # def threads(self):
+    #     user.find("threads")
 
 
 # Create a custom marshmallow schema from User document in order to avoid some fields
@@ -289,6 +322,35 @@ class UserNoPassSchema(User.schema.as_marshmallow_schema()):
         read_only = ('password',)
         load_only = ('password',)
 
+no_pass_schema = UserNoPassSchema()
 
 def dump_user_no_pass(u):
     return no_pass_schema.dump(u).data
+
+
+
+def populate_db():
+    print('populating db')
+    User.collection.drop()
+    User.ensure_indexes()
+    for data in [
+        {
+            'username': 'mze',
+            'email':'a@b.com',
+            'lastname': 'Mao',
+            'firstname': 'Zedong',
+            'birthday': datetime.datetime(1893, 12, 26),
+            'password': 'Serve the people'
+        },
+
+        {
+            'nick': 'xiji',
+            'email':'c@d.com',
+            'lastname': 'Xi',
+             'firstname': 'Jinping',
+            'birthday': datetime.datetime(1953, 6, 15),
+             'password': 'Achieve the 4 modernisations',
+            'date_created' : datetime.datetime.utcnow()
+        }
+    ]:
+        User(**data).commit()

@@ -2,14 +2,14 @@
 """
 """
 from flask import (Blueprint, request, render_template, flash, g, session,
-    redirect, url_for, abort)
+    redirect, url_for, abort, jsonify)
 from bson import ObjectId
 
 # TODO: frontends, db imports
 # # from flask_reddit import db
 from disxss.frontends.views import get_subreddits
 
-from disxss.users.models import User
+from disxss.users.models import User, dump_user_no_pass
 
 from disxss.users.decorators import requires_login
 from disxss import app
@@ -39,3 +39,16 @@ def home_page(username=None):
         abort(404)
     return render_template('users/profile.html', user=g.user, current_user=user,
             subreddits = get_subreddits())
+
+
+
+@app.route('/users', methods=['GET'])
+def list_users():
+    page = int(request.args.get('page', 1))
+    users = User.find().limit(10).skip((page - 1) * 10)
+    return jsonify({
+        '_total': users.count(),
+        '_page': page,
+        '_per_page': 10,
+        '_items': [dump_user_no_pass(u) for u in users]
+    })
