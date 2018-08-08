@@ -1,6 +1,6 @@
 
 
-from datetime import datetime
+import datetime
 from flask import Flask, abort, jsonify, request
 from flask_babel import Babel, gettext
 from bson import ObjectId
@@ -21,6 +21,8 @@ from flask import Flask
 from flask_pymongo import PyMongo
 
 from disxss import logging_config
+
+
 
 
 # Secret key used to encrypt session cookies.
@@ -44,6 +46,7 @@ mongo.init_app(app)
 
 db = MongoClient().disxss
 instance = Instance(db)
+
 babel = Babel()
 babel.init_app(app)
 set_gettext(gettext)
@@ -84,6 +87,7 @@ def handle_csrf_error(e):
     app.logger.error(e.description)
     return render_template('csrf_error.html', reason=e.description), 400
 
+
 from disxss.users.views import bp as  users_bp
 app.register_blueprint(users_bp)
 
@@ -96,6 +100,23 @@ def custom_render(template, *args, **kwargs):
     custom template rendering including some flask_reddit vars
     """
     return render_template(template, *args, **kwargs)
+
+
+
+@app.route('/root', methods=['GET'])
+def root():
+    return """<h1>Umongo flask example</h1>
+<br>
+<h3>routes:</h3><br>
+<ul>
+  <li><a href="/users">GET /users</a></li>
+  <li>POST /users</li>
+  <li>GET /users/&lt;nick_or_id&gt;</li>
+  <li>PATCH /users/&lt;nick_or_id&gt;</li>
+  <li>PUT /users/&lt;nick_or_id&gt;/password</li>
+</ul>
+"""
+
 
 app.debug = app.config['DEBUG']
 
