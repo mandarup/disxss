@@ -281,7 +281,8 @@ class User(Document):
         return super(User, self).update(*args, **kwargs)
 
     class Meta:
-        collection = db.user
+        # collection = db.users
+        collection_name = 'users'
 
     def get_thread_karma(self):
         """
