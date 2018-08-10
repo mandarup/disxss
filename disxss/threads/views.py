@@ -12,19 +12,19 @@ from flask import (Blueprint, request, render_template, flash, g, session,
 from disxss.threads.forms import SubmitForm
 from disxss.threads.models import Thread
 
-# from flask_reddit.users.models import User
+from disxss.users.models import User
 # from flask_reddit.subreddits.models import Subreddit
-# from flask_reddit.frontends.views import get_subreddits
+from disxss.frontends.views import get_subreddits
 # from flask_reddit import db
 
-# from flask_reddit.reddit import db
+from disxss import db
 
 
 bp = Blueprint('threads', __name__, url_prefix='/threads')
 
 # Threads Views #
 
-@mod.before_request
+@bp.before_request
 def before_request():
     g.user = None
     if 'user_id' in session:
@@ -42,14 +42,14 @@ def meets_thread_criterea(thread):
         flash('You must post either body text or a link!', 'danger')
         return False
 
-    dup_link = Thread.query.filter_by(link=thread.link).first()
+    dup_link = Thread.find_one(link=thread.link)
     if not thread.text and dup_link:
         flash('someone has already posted the same link as you!', 'danger')
         return False
 
     return True
 
-@mod.route('/<subreddit_name>/submit/', methods=['GET', 'POST'])
+@bp.route('/<subreddit_name>/submit/', methods=['GET', 'POST'])
 def submit(subreddit_name=None):
     """
     """
@@ -58,7 +58,7 @@ def submit(subreddit_name=None):
         return redirect(url_for('frontends.login', next=request.path))
     user_id = g.user.id
 
-    subreddit = Subreddit.query.filter_by(name=subreddit_name).first()
+    subreddit = Subreddit.find_one(name=subreddit_name)
     if not subreddit:
         abort(404)
 
@@ -86,19 +86,19 @@ def submit(subreddit_name=None):
     return render_template('threads/submit.html', form=form, user=g.user,
             cur_subreddit=subreddit, subreddits=get_subreddits())
 
-@mod.route('/delete/', methods=['GET', 'POST'])
+@bp.route('/delete/', methods=['GET', 'POST'])
 def delete():
     """
     """
     pass
 
-@mod.route('/edit/', methods=['GET', 'POST'])
+@bp.route('/edit/', methods=['GET', 'POST'])
 def edit():
     """
     """
     pass
 
-@mod.route('/<subreddit_name>/<thread_id>/<path:title>/', methods=['GET', 'POST'])
+@bp.route('/<subreddit_name>/<thread_id>/<path:title>/', methods=['GET', 'POST'])
 def thread_permalink(subreddit_name=None, thread_id=None, title=None):
     """
     """
@@ -109,23 +109,24 @@ def thread_permalink(subreddit_name=None, thread_id=None, title=None):
     return render_template('threads/permalink.html', user=g.user, thread=thread,
             cur_subreddit=subreddit, subreddits=subreddits)
 
+
 ##########################
 ##### Comments Views #####
 ##########################
 
-@mod.route('/comments/submit/', methods=['GET', 'POST'])
+@bp.route('/comments/submit/', methods=['GET', 'POST'])
 def submit_comment():
     """
     """
     pass
 
-@mod.route('/comments/delete/', methods=['GET', 'POST'])
+@bp.route('/comments/delete/', methods=['GET', 'POST'])
 def delete_comment():
     """
     """
     pass
 
-@mod.route('/comments/<comment_id>/', methods=['GET', 'POST'])
+@bp.route('/comments/<comment_id>/', methods=['GET', 'POST'])
 def comment_permalink():
     """
     """

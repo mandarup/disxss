@@ -18,6 +18,7 @@ from umongo.marshmallow_bonus import SchemaFromUmongo
 from disxss.threads import constants as THREAD
 from disxss import utils
 from disxss import media
+from disxss import instance
 
 # thread_upvotes = db.Table('thread_upvotes',
 #     db.Column('user_id', db.Integer, db.ForeignKey('users_user.id')),
@@ -61,10 +62,16 @@ class Thread(Document):
     __tablename__ = 'threads_thread'
 
     # id = db.IntField()
-    title = fields.StrField(THREAD.MAX_TITLE) # b.StringField(THREAD.MAX_TITLE)
-    text = fields.StringField(THREAD.MAX_BODY, default=None)
-    link = fields.StringField(THREAD.MAX_LINK, default=None)
-    thumbnail = fields.StringField(THREAD.MAX_LINK, default=None)
+    # title = fields.StrField(THREAD.MAX_TITLE) # b.StringField(THREAD.MAX_TITLE)
+    title = fields.StrField(validate=validate.Length(max=THREAD.MAX_TITLE),
+                            default=None) # b.StringField(THREAD.MAX_TITLE)
+
+    text = fields.StrField( default=None,
+                            validate=validate.Length(max=THREAD.MAX_BODY))
+    link = fields.StrField(default=None,
+                           validate=validate.Length(max=THREAD.MAX_LINK))
+    thumbnail = fields.StrField( default=None,
+                                 validate=validate.Length(max=THREAD.MAX_LINK))
 
     # NOTE: this should be ReferenceField
     user_id = fields.ReferenceField("User") # Integer?
@@ -281,7 +288,8 @@ class Comment(Document):
     # __tablename__ = 'threads_comment'
 
     # text = db.StringField(THREAD.MAX_BODY, default=None)
-    text = fields.StringField(THREAD.MAX_BODY, default=None)
+    text = fields.StringField(default=None,
+                               validate=validate.Length(max=THREAD.MAX_BODY))
 
     #
     # user_id = db.IntField()

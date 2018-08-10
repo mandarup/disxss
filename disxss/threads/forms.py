@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 """
-from flask_reddit.threads import constants as THREAD
+from disxss.threads import constants as THREAD
 from flask_wtf import Form
 from wtforms import TextField, TextAreaField
 from wtforms.validators import Required, URL, Length

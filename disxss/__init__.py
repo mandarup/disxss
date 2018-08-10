@@ -95,6 +95,9 @@ from disxss.frontends.views import bp as frontends_bp
 app.register_blueprint(frontends_bp)
 
 
+from disxss.threads.views import bp as  threads_bp
+app.register_blueprint(threads_bp)
+
 def custom_render(template, *args, **kwargs):
     """
     custom template rendering including some flask_reddit vars
