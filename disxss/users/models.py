@@ -18,7 +18,7 @@ from disxss.users import constants as USER
 from disxss import db
 from disxss import app
 from disxss import instance
-
+from disxss.threads.models import Thread, Comment
 
 # users = db.users
 
@@ -303,7 +303,7 @@ class User(Document):
         # return rs.rowcount
         # TODO
 
-        return 0
+        return len(list(Thread.find({"user_id":self.id})))
 
     def get_comment_karma(self):
         """
@@ -312,10 +312,15 @@ class User(Document):
         """
         # TODO
 
-        return 0
+        return len(list(Comment.find({'user_id': self.id})))
 
-    # def threads(self):
-    #     user.find("threads")
+    def threads(self):
+        app.logger.debug(Thread.find({"user_id":self.id})[:])
+        return list(Thread.find({"user_id":self.id}))
+
+    def comments(self):
+        app.logger.debug(list(Comment.find({"user_id":self.id})))
+        return list(Comment.find({"user_id":self.id}))
 
 
 # Create a custom marshmallow schema from User document in order to avoid some fields
@@ -328,31 +333,3 @@ no_pass_schema = UserNoPassSchema()
 
 def dump_user_no_pass(u):
     return no_pass_schema.dump(u).data
-
-
-
-def populate_db():
-    print('populating db')
-    User.collection.drop()
-    User.ensure_indexes()
-    for data in [
-        {
-            'username': 'mze',
-            'email':'a@b.com',
-            'lastname': 'Mao',
-            'firstname': 'Zedong',
-            'birthday': datetime.datetime(1893, 12, 26),
-            'password': 'Serve the people'
-        },
-
-        {
-            'nick': 'xiji',
-            'email':'c@d.com',
-            'lastname': 'Xi',
-             'firstname': 'Jinping',
-            'birthday': datetime.datetime(1953, 6, 15),
-             'password': 'Achieve the 4 modernisations',
-            'date_created' : datetime.datetime.utcnow()
-        }
-    ]:
-        User(**data).commit()

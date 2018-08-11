@@ -94,9 +94,15 @@ app.register_blueprint(users_bp)
 from disxss.frontends.views import bp as frontends_bp
 app.register_blueprint(frontends_bp)
 
-
 from disxss.threads.views import bp as  threads_bp
 app.register_blueprint(threads_bp)
+
+# from disxss.apis.views import mod as apis_module
+# app.register_blueprint(apis_module)
+
+from disxss.subreddits.views import bp as subreddits_bp
+app.register_blueprint(subreddits_bp)
+
 
 def custom_render(template, *args, **kwargs):
     """
@@ -125,4 +131,7 @@ app.debug = app.config['DEBUG']
 
 if __name__ == '__main__':
     print('We are running flask via main()')
+    disxss.users.models.populate_db()
+
+    disxss.db.init_db()
     app.run()

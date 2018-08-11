@@ -22,7 +22,7 @@ def before_request():
     g.user = None
 
     if 'user_id' in session:
-        g.user = db.users.find({'_id': ObjectId(session['user_id'])})
+        g.user = db.users.find({'_id': ObjectId(session['user_id'])})[0]
         app.logger.debug("filter user : {}".format(session['user_id']))
 
 
@@ -33,11 +33,12 @@ def home_page(username=None):
 
     # TODO: port to mongodb query
     # user = User.query.filter_by(username=username).first()
-    # user = db.users.find({'username': username}).username#.first()
-    user = db.users.find_one_or_404({"username": username})
+    user = User.find({'username': username})[0]
+    # user = db.users.find_one_or_404({"username": username})
     if not user:
         abort(404)
-    return render_template('users/profile.html', user=g.user, current_user=user,
+    return render_template('users/profile.html',
+            user=g.user, current_user=user,
             subreddits = get_subreddits())
 
 

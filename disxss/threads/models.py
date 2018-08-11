@@ -8,13 +8,14 @@ go in this file.
 import math
 import datetime
 
-from disxss import db
+
 from bson.objectid import ObjectId
 
 from umongo import Instance, Document, fields, ValidationError, set_gettext
 from umongo import validate
 from umongo.marshmallow_bonus import SchemaFromUmongo
 
+from disxss import db
 from disxss.threads import constants as THREAD
 from disxss import utils
 from disxss import media
@@ -59,7 +60,7 @@ class Thread(Document):
     We will mimic reddit, with votable threads. Each thread may have either
     a body text or a link, but not both.
     """
-    __tablename__ = 'threads_thread'
+    # __tablename__ = 'threads_thread'
 
     # id = db.IntField()
     # title = fields.StrField(THREAD.MAX_TITLE) # b.StringField(THREAD.MAX_TITLE)
@@ -90,7 +91,8 @@ class Thread(Document):
     hotness = fields.IntegerField()
 
     class Meta:
-        collection_name = "thread"
+        # collection = db.threads
+        collection_name = "threads"
 
 
     # def __init__(self, title, text, link, user_id, subreddit_id):
@@ -272,7 +274,7 @@ class Thread(Document):
     #     self.thumbnail = thumbnail
     #     db.session.commit()
 
-
+@instance.register
 class Comment(Document):
     """
     This class is here because comments can only be made on threads,

@@ -11,14 +11,10 @@ from flask import (Blueprint, request, render_template, flash, g, session,
 
 from disxss.threads.forms import SubmitForm
 from disxss.threads.models import Thread
-
 from disxss.users.models import User
-# from flask_reddit.subreddits.models import Subreddit
 from disxss.frontends.views import get_subreddits
-# from flask_reddit import db
-
 from disxss import db
-
+from disxss import app
 
 bp = Blueprint('threads', __name__, url_prefix='/threads')
 
@@ -28,7 +24,7 @@ bp = Blueprint('threads', __name__, url_prefix='/threads')
 def before_request():
     g.user = None
     if 'user_id' in session:
-        g.user = User.find({'id': ObjectId(session['user_id'])})
+        g.user = User.find({'id': ObjectId(session['user_id'])})[0]
         app.logger.debug("filter user : {}".format(session['user_id']))
 
 
@@ -74,12 +70,13 @@ def submit(subreddit_name=None):
             return render_template('threads/submit.html', form=form, user=g.user,
                 cur_subreddit=subreddit.name)
 
+        thread.commit()
         # db.threads.add_thread
         # db.session.add(thread)
         # db.session.commit()
 
         # thread.set_hotness()
-        thread.add_thread()
+        # thread.add_thread()
 
         flash('thanks for submitting!', 'success')
         return redirect(url_for('subreddits.permalink', subreddit_name=subreddit.name))
@@ -102,9 +99,9 @@ def edit():
 def thread_permalink(subreddit_name=None, thread_id=None, title=None):
     """
     """
-    thread_id = thread_id or -99
-    thread = Thread.query.get_or_404({"_id": int(thread_id)})
-    subreddit = Subreddit.query.filter_by(name=subreddit_name).first()
+    thread_id = thread_id #or -99
+    thread = Thread.find_one_or_404({"id": ObjectId(thread_id)})
+    subreddit = Subreddit.find_one(name=subreddit_name)
     subreddits = get_subreddits()
     return render_template('threads/permalink.html', user=g.user, thread=thread,
             cur_subreddit=subreddit, subreddits=subreddits)

@@ -8,20 +8,20 @@
                 <div class="col-sm-6 col-md-8">
                     <h4>User: <u>{{ current_user.username }}</u></h4>
                     <p class="trophy-room">
-                    Threads: <span class="red">{{ current_user.threads.all()|length() }}</span>, 
-                    Comments: <span class="red">{{ current_user.comments.all()|length() }}</span><br> 
+                    Threads: <span class="red">{{ current_user.threads() |length() }}</span>,
+                    Comments: <span class="red">{{ current_user.comments() |length() }}</span><br>
                     </p>
                     <i class="glyphicon glyphicon-envelope"></i>&emsp;{{ current_user.email }}
                     <br>
 
                     <u><h4 class="profile-label">Recent threads</h4></u>
-                    {% for thread in current_user.threads.all()[-7:]|reverse  %}
+                    {% for thread in current_user.threads()[-7:]|reverse  %}
                         <p>
                         <a class="profile-listing" href="{{ thread.link }}">{{ thread.title }}</a>
                             <br>
-                            <span class="profile-listing-inline"> posted 
+                            <span class="profile-listing-inline"> posted
                             <a href="{{ config.ROOT_URL }}/threads/{{ thread.subreddit.name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}">
-                                {{ thread.pretty_date() }}</a> in 
+                                {{ thread.pretty_date() }}</a> in
                             <a href="/r/{{ thread.subreddit.name }}">{{ thread.subreddit.name }}</a>
                             </span>
                         </p>
@@ -29,9 +29,9 @@
                         <!--<p>see more ...</p>-->
 
                     <u><h4 class="profile-label">Recent comments</h4></u>
-                    {% for comment in current_user.comments.all()[-7:]|reverse %}
+                    {% for comment in current_user.comments()[-7:]|reverse %}
                         <p>
-                        <span class="profile-listing">{{ comment.text }}</span> 
+                        <span class="profile-listing">{{ comment.text }}</span>
                         <span class="profile-listing-inline">
                         <a href="{{ config.ROOT_URL }}/threads/{{ comment.thread.subreddit.name }}/{{ comment.thread.id }}/{{ comment.thread.title|truncate(100)|replace(' ', '_') }}">{{ comment.pretty_date() }}</a>
                         </p>
