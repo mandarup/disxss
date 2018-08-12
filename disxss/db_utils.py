@@ -1,5 +1,6 @@
 
 import datetime
+from werkzeug import check_password_hash, generate_password_hash
 
 from disxss.users.models import User
 from disxss.threads.models import Thread
@@ -61,20 +62,20 @@ def populate_db():
     for data in [
         {
             'username': 'a',
-            'email':'a@b.io',
+            'email':'a@disxss.io',
             'lastname': 'Mao',
             'firstname': 'Zedong',
             'birthday': datetime.datetime(1993, 12, 26),
-            'password': '1'
+            'password': generate_password_hash('1')
         },
 
         {
-            'username': 'xiji',
-            'email':'c@d.com',
+            'username': 'b',
+            'email':'b@disxss.io',
             'lastname': 'Xi',
              'firstname': 'Jinping',
             'birthday': datetime.datetime(1953, 6, 15),
-             'password': 'Achieve the 4 modernisations',
+             'password': generate_password_hash('1'),
             'date_created' : datetime.datetime.utcnow()
         }
     ]:
