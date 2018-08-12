@@ -132,8 +132,12 @@ def search():
             search_text=True, limit=100)
 
     thread_paginator = process_thread_paginator(rs=rs)
-    # rs = rs.find()
-    num_searches = rs.count()
+
+    num_searches = 0
+    app.logger.debug("rs: {}".format(rs))
+    if rs:
+        num_searches = rs.count()
+
     subreddits = get_subreddits()
 
     return render_template('home.html', user=g.user,
