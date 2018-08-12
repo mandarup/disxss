@@ -76,7 +76,7 @@ class Thread(Document):
 
     # NOTE: this should be ReferenceField
     user_id = fields.ReferenceField("User") # Integer?
-    # subreddit_id = fields.ReferenceField(Subreddit)
+    subreddit_id = fields.ReferenceField("Subreddit")
 
     date_created = fields.DateTimeField(default=datetime.datetime.now())
     date_updated = fields.DateTimeField(default=datetime.datetime.now())
