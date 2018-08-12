@@ -43,8 +43,9 @@ def home_subreddit():
     # return Subreddit.query.get_or_404(1)
 
     s = Subreddit.find_one({})
-    # if s is None:
-    #     abort(404)
+    if s is None:
+        # abort(404)
+        flash("There are no subreddits yet, create one!")
     return s
 
 def get_subreddits():
