@@ -303,7 +303,7 @@ class User(Document):
         # return rs.rowcount
         # TODO
 
-        return len(list(Thread.find({"user_id":self.id})))
+        return Thread.find({"user_id":self.id}).count()
 
     def get_comment_karma(self):
         """
@@ -312,7 +312,7 @@ class User(Document):
         """
         # TODO
 
-        return len(list(Comment.find({'user_id': self.id})))
+        return Comment.find({'user_id': self.id}).count()
 
     def threads(self):
         app.logger.debug(Thread.find({"user_id":self.id})[:])
