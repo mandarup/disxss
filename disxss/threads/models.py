@@ -93,6 +93,7 @@ class Thread(Document):
     class Meta:
         # collection = db.threads
         collection_name = "threads"
+        indexes = ('username', '$text', 'title')
 
 
     # def __init__(self, title, text, link, user_id, subreddit_id):

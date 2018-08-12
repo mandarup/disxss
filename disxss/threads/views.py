@@ -56,9 +56,16 @@ def submit(subreddit_name=None):
         return redirect(url_for('frontends.login', next=request.path))
     user_id = g.user.id
 
-    subreddit = Subreddit.find_one(name=subreddit_name)
+
+    subreddits = Subreddit.find({"name":subreddit_name})
+    subreddit = None
+    if subreddits.count() > 0:
+        subreddit = subreddits[0]
     if not subreddit:
-        abort(404)
+        flash('Select a subreddit!', 'danger')
+        # abort(404)
+        return redirect(url_for('frontends.home', next=request.path))
+
 
     form = SubmitForm(request.form)
     if form.validate_on_submit():
