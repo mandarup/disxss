@@ -77,7 +77,7 @@
     {% if user is defined and user != None %}
         <!-- -->
     {% else %}
-        <!-- <h4 class="pre-reg-info">Please register or login to post!</h4>-->
+        <h4 class="pre-reg-info">Please register or login to post!</h4>
     {% endif %}
     {% block create_buttons %}
 
@@ -138,7 +138,8 @@
     </ul>
     <a class="align-right-col" href="{{ url_for('subreddits.view_all') }}">view all</a>
     <i>
-    <div class="align-right-col byline-lucas">Built by: <a href="https://codelucas.com">Lucas Ou-Yang</a>.
+    <div class="align-right-col byline-lucas">Built by:
+        <a href="https://disxss.com">Free Throw </a>.
         <br>
         <a href="https://github.com/codelucas/flask_reddit">
             View code on Github</a>.</div>
