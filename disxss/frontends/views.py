@@ -20,12 +20,11 @@ from disxss.users.decorators import requires_login
 from disxss import app
 from disxss.threads.models import Thread
 from disxss.subreddits.models import Subreddit
-from disxss import search as search_module # don't override function name
+from disxss import search_utils # don't override function name
 
 from disxss import db
 from disxss import db_utils
 
-# users = db.users
 
 bp = Blueprint('frontends', __name__, url_prefix='')
 
@@ -127,12 +126,12 @@ def search():
     Allows users to search threads and comments
     """
     query = request.args.get('query')
-    rs = search_module.search(query, orderby='creation', search_title=True,
+    rs = search_utils.search(query, orderby='date_created', search_title=True,
             search_text=True, limit=100)
 
     thread_paginator = process_thread_paginator(rs=rs)
-    rs = rs.all()
-    num_searches = len(rs)
+    # rs = rs.find()
+    num_searches = rs.count()
     subreddits = get_subreddits()
 
     return render_template('home.html', user=g.user,
