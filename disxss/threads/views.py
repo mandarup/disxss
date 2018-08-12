@@ -12,6 +12,7 @@ from flask import (Blueprint, request, render_template, flash, g, session,
 from disxss.threads.forms import SubmitForm
 from disxss.threads.models import Thread
 from disxss.users.models import User
+from disxss.subreddits.models import Subreddit
 from disxss.frontends.views import get_subreddits
 from disxss import db
 from disxss import app
@@ -28,9 +29,10 @@ def before_request():
         app.logger.debug("filter user : {}".format(session['user_id']))
 
 
-def meets_thread_criterea(thread):
+def meets_thread_criteria(thread):
     """
     """
+    app.logger.debug("thread: {}".format(thread))
     if not thread.title:
         flash('You must include a title!', 'danger')
         return False
@@ -66,7 +68,7 @@ def submit(subreddit_name=None):
         thread = Thread(title=title, link=link, text=text,
                 user_id=user_id, subreddit_id=subreddit.id)
 
-        if not meets_thread_criterea(thread):
+        if not meets_thread_criteria(thread):
             return render_template('threads/submit.html', form=form, user=g.user,
                 cur_subreddit=subreddit.name)
 
