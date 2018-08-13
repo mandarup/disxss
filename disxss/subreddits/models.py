@@ -18,7 +18,7 @@ from disxss import utils
 from disxss import media
 from disxss import instance
 from disxss.subreddits import constants as SUBREDDIT
-from disxss.threads.models import Thread
+from disxss.threads import models as threads_model
 
 
 @instance.register

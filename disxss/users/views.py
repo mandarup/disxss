@@ -33,13 +33,21 @@ def home_page(username=None):
 
     # TODO: port to mongodb query
     # user = User.query.filter_by(username=username).first()
-    user = User.find({'username': username})[0]
+    cursor = User.find({'username': username})
+    user = cursor[0]
+    # user['thread_karma'] = Thread.find({"user_id":user.id})
+    app.logger.debug("user cursor: {}".format(cursor))
+    app.logger.debug("user dict: {}".format(user))
+    app.logger.debug("thread karma: {}".format(user.get_thread_karma()))
     # user = db.users.find_one_or_404({"username": username})
+
+    threads = Thread.find({'user_id': user.id})
     if not user:
         abort(404)
     return render_template('users/profile.html',
-            user=g.user, current_user=user,
-            subreddits = get_subreddits())
+            user=user, current_user=user,
+            subreddits = get_subreddits(),
+            )
 
 
 

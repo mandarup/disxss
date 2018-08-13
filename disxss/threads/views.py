@@ -72,13 +72,16 @@ def submit(subreddit_name=None):
         title = form.title.data.strip()
         link = form.link.data.strip()
         text = form.text.data.strip()
-        thread = Thread(title=title, link=link, text=text,
-                user_id=user_id, subreddit_id=subreddit.id)
+
+        thread_data = {"title":title, "link":link, "text":text,
+                "user_id":user_id, "subreddit_id":subreddit.id}
+        thread = Thread(**thread_data)
 
         if not meets_thread_criteria(thread):
             return render_template('threads/submit.html', form=form, user=g.user,
                 cur_subreddit=subreddit.name)
 
+        thread.update()
         thread.commit()
         # db.threads.add_thread
         # db.session.add(thread)

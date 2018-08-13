@@ -20,6 +20,9 @@ from disxss.threads import constants as THREAD
 from disxss import utils
 from disxss import media
 from disxss import instance
+# from disxss.users.models import User
+from disxss.subreddits import models as subreddits_model
+
 
 # thread_upvotes = db.Table('thread_upvotes',
 #     db.Column('user_id', db.Integer, db.ForeignKey('users_user.id')),
@@ -76,10 +79,12 @@ class Thread(Document):
 
     # NOTE: this should be ReferenceField
     user_id = fields.ReferenceField("User") # Integer?
-    subreddit_id = fields.ReferenceField("Subreddit")
+    subreddit_id = fields.ObjectIdField() #
+    subreddit = fields.ReferenceField("Subreddit")
+    comments = fields.ListField(fields.ReferenceField("Comment"))
 
     date_created = fields.DateTimeField(default=datetime.datetime.now())
-    date_updated = fields.DateTimeField(default=datetime.datetime.now())
+    date_modified = fields.DateTimeField(default=datetime.datetime.now())
 
     # created_on = db.CreatedField()
     # updated_on = db.ModifiedField()
@@ -90,10 +95,24 @@ class Thread(Document):
     votes = fields.IntegerField()
     hotness = fields.IntegerField()
 
+    # def __init__(self):
+    #     self.subreddit = self.get_subreddit()
+
+    def update(self):
+        if not self.date_created:
+            self.date_created = datetime.datetime.now()
+        self.date_modified = datetime.datetime.now()
+        self.subreddit = self.get_subreddit()
+        return self
+
     class Meta:
         # collection = db.threads
         collection_name = "threads"
         indexes = ('username', '$text', 'title')
+
+
+    def get_subreddit(self):
+        return subreddits_model.Subreddit.find({"id": self.subreddit_id})[0]
 
 
     # def __init__(self, title, text, link, user_id, subreddit_id):
@@ -176,15 +195,15 @@ class Thread(Document):
     #     self.hotness = self.get_hotness()
     #
     #
-    # def pretty_date(self, typeof='created'):
-    #     """
-    #     returns a humanized version of the raw age of this thread,
-    #     eg: 34 minutes ago versus 2040 seconds ago.
-    #     """
-    #     if typeof == 'created':
-    #         return utils.pretty_date(self.created_on)
-    #     elif typeof == 'updated':
-    #         return utils.pretty_date(self.updated_on)
+    def pretty_date(self, typeof='created'):
+        """
+        returns a humanized version of the raw age of this thread,
+        eg: 34 minutes ago versus 2040 seconds ago.
+        """
+        if typeof == 'created':
+            return utils.pretty_date(self.date_created)
+        elif typeof == 'updated':
+            return utils.pretty_date(self.date_modified)
     #
     # def add_comment(self, comment_text, comment_parent_id, user_id):
     #     """
@@ -310,7 +329,7 @@ class Comment(Document):
     # updated_on = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
     date_created = fields.DateTimeField(default=datetime.datetime.now())
-    date_updated = fields.DateTimeField(default=datetime.datetime.now())
+    date_modified = fields.DateTimeField(default=datetime.datetime.now())
 
 
     # votes = db.Column(db.Integer, default=1)
