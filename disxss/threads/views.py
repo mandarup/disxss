@@ -40,7 +40,7 @@ def meets_thread_criteria(thread):
         flash('You must post either body text or a link!', 'danger')
         return False
 
-    dup_link = Thread.find_one(link=thread.link)
+    dup_link = Thread.find_one({"link":thread.link})
     if not thread.text and dup_link:
         flash('someone has already posted the same link as you!', 'danger')
         return False

@@ -82,16 +82,21 @@ def process_thread_paginator(trending=False, rs=None, subreddit=None):
 
     # sexy line of code :)
     app.logger.debug("subreddit: {}".format(subreddit))
+    if subreddit:
+        app.logger.debug("subreddit.threads: {}".format(subreddit.get_threads()))
     app.logger.debug("Thread: {}".format(Thread.find()))
     def get_base_query():
-        if subreddit is not None and subreddit.threads is not None:
-            app.logger.debug("subreddit.threads: {}".format(subreddit.threads))
-            return subreddit.threads.find()
+        if subreddit is not None and subreddit.get_threads() is not None:
+            app.logger.debug("subreddit.threads: {}".format(subreddit.get_threads()))
+            return subreddit.get_threads()
         else:
             return Thread.find()
 
-    base_query = get_base_query()
 
+    base_query = get_base_query()
+    app.logger.debug("base_query: {}".format(base_query))
+    app.logger.debug("base_query: {}".format([x for x in base_query]))
+    base_query = get_base_query()
     if trending:
         thread_paginator = base_query.sort([("votes", pymongo.DESCENDING)])
         thread_paginator = db_utils.paginate(thread_paginator, page_num=cur_page, page_size=threads_per_page)
@@ -100,19 +105,19 @@ def process_thread_paginator(trending=False, rs=None, subreddit=None):
         thread_paginator = db_utils.paginate(thread_paginator, page_num=cur_page, page_size=threads_per_page)
     return thread_paginator
 
-#@bp.route('/<regex("trending"):trending>/')
+# @bp.route('/<regex("trending"):trending>/')
 @bp.route('/')
 def home(trending=False):
     """
     If not trending we order by creation date
     """
-    trending = True if request.args.get('trending') else False
+    trending = True if request.args.get('trending') else trending
     subreddits = get_subreddits()
 
 
     #---------------------------------------------------------------------
     # TODO: fix pagination
-    thread_paginator = process_thread_paginator(trending)
+    thread_paginator = process_thread_paginator(trending=trending)
     # thread_paginator = []
     #---------------------------------------------------------------------
 
@@ -201,6 +206,7 @@ def login():
 @requires_login
 def logout():
     session.pop('user_id', None)
+    app.logger.debug("logging out")
     return redirect(url_for('frontends.home'))
 
 @bp.route('/register/', methods=['GET', 'POST'])

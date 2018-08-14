@@ -43,7 +43,7 @@ class Subreddit(Document):
     date_updated = fields.DateTimeField(default=datetime.datetime.now())
 
     # threads = db.relationship('Thread', backref='subreddit', lazy='dynamic')
-    threads = fields.ReferenceField("Thread") # Integer?
+    # threads = fields.ReferenceField("Thread") # Integer?
 
     # status = db.Column(db.SmallInteger, default=SUBREDDIT.ALIVE)
     status = fields.IntegerField(default=SUBREDDIT.ALIVE)
@@ -52,20 +52,24 @@ class Subreddit(Document):
         collection_name = 'subreddits'
         # collection = db.subreddits
 
-    # def __repr__(self):
-    #     return '<Subreddit %r>' % (self.name)
-    #
-    # def get_threads(self, order_by='timestamp'):
-    #     """
-    #     default order by timestamp
-    #     """
-    #     if order_by == 'timestamp':
-    #         return self.threads.order_by(db.desc(Thread.created_on)).\
-    #             all()[:SUBREDDIT.MAX_THREADS]
-    #     else:
-    #         return self.threads.order_by(db.desc(Thread.created_on)).\
-    #             all()[:SUBREDDIT.MAX_THREADS]
-    #
+    def __repr__(self):
+        return '<Subreddit %r>' % (self.name)
+
+
+    def get_threads(self, order_by='timestamp'):
+        """
+        default order by timestamp
+        """
+        # if order_by == 'timestamp':
+        #     return self.threads.order_by(db.desc(Thread.created_on)).\
+        #         all()[:SUBREDDIT.MAX_THREADS]
+        # else:
+        #     return self.threads.order_by(db.desc(Thread.created_on)).\
+        #         all()[:SUBREDDIT.MAX_THREADS]
+
+        threads = threads_model.Thread.find({'subreddit_id':self.id})#[:SUBREDDIT.MAX_THREADS]
+        return threads
+
     # def get_status(self):
     #     """
     #     returns string form of status, 0 = 'dead', 1 = 'alive'

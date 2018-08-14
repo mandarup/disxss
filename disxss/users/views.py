@@ -10,7 +10,7 @@ from bson import ObjectId
 from disxss.frontends.views import get_subreddits
 
 from disxss.users.models import User, dump_user_no_pass
-
+from disxss.threads.models import Thread
 from disxss.users.decorators import requires_login
 from disxss import app
 from disxss import db
