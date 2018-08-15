@@ -83,6 +83,10 @@ def submit(subreddit_name=None):
 
         thread.update()
         thread.commit()
+        app.logger.debug("adding thread: subreddit name: {}"
+                         .format(thread.subreddit))
+        app.logger.debug("adding thread: subreddit name: {}"
+                         .format(thread.subreddit.fetch().name))
         # db.threads.add_thread
         # db.session.add(thread)
         # db.session.commit()

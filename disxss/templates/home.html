@@ -10,7 +10,7 @@
       <div class="spacer"></div>
 
       {# TODO: enable threads after defining threads module #}
-      {% for thread in thread_paginator.items %}
+      {% for thread in thread_paginator %}
         <div name="{{ thread.id }}" class="row listing-row">
           <div class="col-lg-1 listing-vote-box">
               <div class="">
@@ -40,7 +40,10 @@
 
               <div class="post-listing-meta">
                   <a href="{{ config.ROOT_URL }}/threads/{{ thread.subreddit.name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}">
-                  {{ thread.comments.all()|length() }} comments</a>,
+                     {#<!-- {{ thread.comments()|length() }} comments -->#}
+                     {{ thread.get_comment_count() }} comments
+
+                  </a>,
                   {{ thread.pretty_date() }}, by
                   <a href="{{ url_for('users.home_page',
                         username=thread.user.username) }}">

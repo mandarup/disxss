@@ -78,9 +78,14 @@ class Thread(Document):
                                  validate=validate.Length(max=THREAD.MAX_LINK))
 
     # NOTE: this should be ReferenceField
-    user_id = fields.ReferenceField("User") # Integer?
+    user_id = fields.ObjectIdField() # Integer?
     subreddit_id = fields.ObjectIdField() #
+
+    user = fields.ReferenceField("User") # Integer?
     subreddit = fields.ReferenceField("Subreddit")
+
+
+    comment_ids = fields.ListField(fields.ObjectIdField())
     comments = fields.ListField(fields.ReferenceField("Comment"))
 
     date_created = fields.DateTimeField(default=datetime.datetime.now())
@@ -88,6 +93,7 @@ class Thread(Document):
 
     # created_on = db.CreatedField()
     # updated_on = db.ModifiedField()
+
     # comments = fields.ReferenceField('Comment', backref='thread', lazy='dynamic')
     #
     status = fields.IntegerField(default=THREAD.ALIVE)
@@ -233,20 +239,25 @@ class Thread(Document):
     #     rs = db.engine.execute(select)
     #     ids = rs.fetchall() # list of tuples
     #     return ids
-    #
-    # def has_voted(self, user_id):
-    #     """
-    #     did the user vote already
-    #     """
-    #     select_votes = thread_upvotes.select(
-    #             db.and_(
-    #                 thread_upvotes.c.user_id == user_id,
-    #                 thread_upvotes.c.thread_id == self.id
-    #             )
-    #     )
-    #     rs = db.engine.execute(select_votes)
-    #     return False if rs.rowcount == 0 else True
-    #
+
+    def has_voted(self, user_id):
+        """
+        did the user vote already
+        """
+        # select_votes = thread_upvotes.select(
+        #         db.and_(
+        #             thread_upvotes.c.user_id == user_id,
+        #             thread_upvotes.c.thread_id == self.id
+        #         )
+        # )
+        # rs = db.engine.execute(select_votes)
+
+        select_votes = (ThreadUpvote
+                        .find({"$and": [{"user_id": user_id},
+                          {"thread_id": self.id}]})).count()
+
+        return False if select_votes == 0 else True
+
     # def vote(self, user_id):
     #     """
     #     allow a user to vote on a thread. if we have voted already
@@ -294,6 +305,14 @@ class Thread(Document):
     #     self.thumbnail = thumbnail
     #     db.session.commit()
 
+    def get_comments(self):
+        app.logger.debug(list(Comment.find({"thread_id":self.id})))
+        return list(Comment.find({"thread_id":self.id}))
+
+    def get_comment_count(self):
+        return Comment.find({"thread_id":self.id}).count()
+
+
 @instance.register
 class Comment(Document):
     """
@@ -316,8 +335,11 @@ class Comment(Document):
     #
     # user_id = db.IntField()
     # thread_id = db.Column(db.Integer, db.ForeignKey('threads_thread.id'))
-    user_id = fields.ReferenceField("User") # Integer?
-    thread_id = fields.ReferenceField("Thread") # Integer?
+    user_id = fields.ObjectIdField() # Integer?
+    thread_id = fields.ObjectIdField() # Integer?
+
+    user = fields.ReferenceField("User") # Integer?
+    thread = fields.ReferenceField("Thread") # Integer?
 
     # parent_id = db.Column(db.Integer, db.ForeignKey('threads_comment.id'))
     # children = db.relationship('Comment', backref=db.backref('parent',
@@ -328,8 +350,11 @@ class Comment(Document):
     # created_on = db.Column(db.DateTime, default=db.func.now())
     # updated_on = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
-    date_created = fields.DateTimeField(default=datetime.datetime.now())
-    date_modified = fields.DateTimeField(default=datetime.datetime.now())
+    date_created = fields.DateTimeField(default=datetime.datetime.now(),
+                                        missing=datetime.datetime.now())
+    date_modified = fields.DateTimeField(
+        default=datetime.datetime.now(),
+        missing=datetime.datetime.now())
 
 
     # votes = db.Column(db.Integer, default=1)
@@ -354,6 +379,13 @@ class Comment(Document):
 
     class Meta:
         collection_name = 'comments'
+
+    def update(self):
+        if not self.date_created:
+            self.date_created = datetime.datetime.now()
+        self.date_modified = datetime.datetime.now()
+        # self.thread = self.get_thread()
+        return self
 
 
     def __repr__(self):
