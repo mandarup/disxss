@@ -74,15 +74,16 @@ def process_thread_paginator(trending=False, rs=None, subreddit=None):
 
     # if we are passing in a resultset, that means we are just looking to
     # quickly paginate some arbitrary data, no sorting
-    if rs:
+    if rs is not None:
         # thread_paginator = rs.paginate(cur_page, per_page=threads_per_page,
         #     error_out=True)
+        app.logger.debug(rs)
         thread_paginator=db_utils.paginate(rs, page_num=cur_page, page_size=threads_per_page)
         return thread_paginator
 
     # sexy line of code :)
     app.logger.debug("subreddit: {}".format(subreddit))
-    if subreddit:
+    if subreddit is not None:
         app.logger.debug("subreddit.threads: {}".format(subreddit.get_threads()))
     app.logger.debug("Thread: {}".format(Thread.find()))
     def get_base_query():
@@ -99,7 +100,9 @@ def process_thread_paginator(trending=False, rs=None, subreddit=None):
     base_query = get_base_query()
     if trending:
         thread_paginator = base_query.sort([("votes", pymongo.DESCENDING)])
-        thread_paginator = db_utils.paginate(thread_paginator, page_num=cur_page, page_size=threads_per_page)
+        thread_paginator = db_utils.paginate(thread_paginator,
+            page_num=cur_page, page_size=threads_per_page)
+        app.logger.debug("thread_paginator: {}".format(thread_paginator[:]))
     else:
         thread_paginator = base_query.sort([("hotness", pymongo.DESCENDING)])
         thread_paginator = db_utils.paginate(thread_paginator, page_num=cur_page, page_size=threads_per_page)
@@ -113,11 +116,12 @@ def home(trending=False):
     """
     trending = True if request.args.get('trending') else trending
     subreddits = get_subreddits()
-
+    app.logger.debug("subreddits: {}".format([x for x in subreddits]))
 
     #---------------------------------------------------------------------
     # TODO: fix pagination
     thread_paginator = process_thread_paginator(trending=trending)
+    app.logger.debug("thread_paginator: {}".format(thread_paginator))
     # thread_paginator = []
     #---------------------------------------------------------------------
 
