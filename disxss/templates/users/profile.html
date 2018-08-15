@@ -22,7 +22,7 @@
                             <span class="profile-listing-inline"> posted
                             <a href="{{ config.ROOT_URL }}/threads/{{ thread.subreddit.name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}">
                                 {{ thread.pretty_date() }}</a> in
-                            <a href="/r/{{ thread.subreddit.name }}">{{ thread.subreddit.name }}</a>
+                            <a href="/r/{{ thread.subreddit.fetch().name }}">{{ thread.subreddit.fetch().name }}</a>
                             </span>
                         </p>
                     {% endfor %}
