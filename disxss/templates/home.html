@@ -9,9 +9,8 @@
       {% endif %}
       <div class="spacer"></div>
 
-      <!--
-      {# TODO: enable threads after defining threads module
-      {% for thread in thread_paginator.items %}
+      {# TODO: enable threads after defining threads module #}
+      {% for thread in thread_paginator %}
         <div name="{{ thread.id }}" class="row listing-row">
           <div class="col-lg-1 listing-vote-box">
               <div class="">
@@ -41,7 +40,10 @@
 
               <div class="post-listing-meta">
                   <a href="{{ config.ROOT_URL }}/threads/{{ thread.subreddit.name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}">
-                  {{ thread.comments.all()|length() }} comments</a>,
+                     {#<!-- {{ thread.comments()|length() }} comments -->#}
+                     {{ thread.get_comment_count() }} comments
+
+                  </a>,
                   {{ thread.pretty_date() }}, by
                   <a href="{{ url_for('users.home_page',
                         username=thread.user.username) }}">
@@ -69,7 +71,7 @@
         {% endif %}
       </ul>
 
-      #} -->
+
   {% endblock %}
 </div>
 
@@ -78,13 +80,13 @@
     {% if user is defined and user != None %}
         <!-- -->
     {% else %}
-        <!-- <h4 class="pre-reg-info">Please register or login to post!</h4>-->
+        <h4 class="pre-reg-info">Please register or login to post!</h4>
     {% endif %}
     {% block create_buttons %}
 
 
-    <!--
-    {# TODO: disable after adding threads
+
+    {# TODO: disable after adding threads #}
 
 
     <div class="row">
@@ -96,7 +98,7 @@
                     placeholder="Search reddit!">
             </div>
 
-                TODO keep commented in html
+                {#TODO keep commented in html #}
                 <button type="submit" class="btn btn-default">Submit</button>
 
 
@@ -111,9 +113,6 @@
             <a href="{{ url_for('threads.submit', subreddit_name='frontpage') }}">
                 <button class="btn btn-primary submit-post-button">submit post</button></a>
         {% endif %}
-
-
-
     </div>
 
     <div class="row">
@@ -128,30 +127,28 @@
     </p>
     {% endif %}
 
-    #}  -->
+
 
     {% endblock %}
 
 
-    <!--
-    {#
 
     <h4 class="subreddit-desc">Subreddits</h4>
     <ul id="subreddit-list">
-        {% for subreddit in subreddits[:10] %}
+        {% for subreddit in subreddits %}
         <li><a href="/r/{{ subreddit.name }}">{{ subreddit.name }}</a></li>
         {% endfor %}
     </ul>
     <a class="align-right-col" href="{{ url_for('subreddits.view_all') }}">view all</a>
     <i>
-    <div class="align-right-col byline-lucas">Built by: <a href="https://codelucas.com">Lucas Ou-Yang</a>.
+    <div class="align-right-col byline-lucas">Built by:
+        <a href="https://disxss.com">Free Throw </a>.
         <br>
         <a href="https://github.com/codelucas/flask_reddit">
             View code on Github</a>.</div>
     </i>
 
-   #}
-   -->
+
   {% endblock %}
 
 

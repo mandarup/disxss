@@ -10,7 +10,7 @@ from bson import ObjectId
 from disxss.frontends.views import get_subreddits
 
 from disxss.users.models import User, dump_user_no_pass
-
+from disxss.threads.models import Thread
 from disxss.users.decorators import requires_login
 from disxss import app
 from disxss import db
@@ -22,7 +22,7 @@ def before_request():
     g.user = None
 
     if 'user_id' in session:
-        g.user = db.users.find({'_id': ObjectId(session['user_id'])})
+        g.user = db.users.find({'_id': ObjectId(session['user_id'])})[0]
         app.logger.debug("filter user : {}".format(session['user_id']))
 
 
@@ -33,12 +33,21 @@ def home_page(username=None):
 
     # TODO: port to mongodb query
     # user = User.query.filter_by(username=username).first()
-    # user = db.users.find({'username': username}).username#.first()
-    user = db.users.find_one_or_404({"username": username})
+    cursor = User.find({'username': username})
+    user = cursor[0]
+    # user['thread_karma'] = Thread.find({"user_id":user.id})
+    app.logger.debug("user cursor: {}".format(cursor))
+    app.logger.debug("user dict: {}".format(user))
+    app.logger.debug("thread karma: {}".format(user.get_thread_karma()))
+    # user = db.users.find_one_or_404({"username": username})
+
+    threads = Thread.find({'user_id': user.id})
     if not user:
         abort(404)
-    return render_template('users/profile.html', user=g.user, current_user=user,
-            subreddits = get_subreddits())
+    return render_template('users/profile.html',
+            user=user, current_user=user,
+            subreddits = get_subreddits(),
+            )
 
 
 

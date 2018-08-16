@@ -4,12 +4,13 @@
 
 import flask
 from flask import (Blueprint, request, render_template, flash,
-    g, session, redirect, url_for, jsonify)
+    g, session, redirect, url_for, jsonify, abort)
+
 from werkzeug import check_password_hash, generate_password_hash
 import datetime
 from easydict import EasyDict as edict
 from bson import json_util, ObjectId
-
+import pymongo
 from umongo import ValidationError
 
 # from disxss import db
@@ -17,13 +18,13 @@ from disxss.users.forms import RegisterForm, LoginForm
 from disxss.users.models import User
 from disxss.users.decorators import requires_login
 from disxss import app
-# from ..threads.models import Thread
-# from ..subreddits.models import Subreddit
-# from . import search as search_module # don't override function name
+from disxss.threads.models import Thread
+from disxss.subreddits.models import Subreddit
+from disxss import search_utils # don't override function name
 
 from disxss import db
+from disxss import db_utils
 
-# users = db.users
 
 bp = Blueprint('frontends', __name__, url_prefix='')
 
@@ -31,7 +32,8 @@ bp = Blueprint('frontends', __name__, url_prefix='')
 def before_request():
     g.user = None
     if 'user_id' in session:
-        g.user = User.find_one({'id': session['user_id']})
+        app.logger.debug({'id': session['user_id']})
+        g.user = User.find({'id': ObjectId(session['user_id'])})[0]
         # g.user = User.query.get(session['user_id'])
         # g.user = User(document=users.find_one_or_404({'_id': ObjectId(session['user_id'])}))
 
@@ -39,7 +41,12 @@ def home_subreddit():
 
     #TODO: convert to mongodb
     # return Subreddit.query.get_or_404(1)
-    return []
+
+    s = Subreddit.find_one({})
+    if s is None:
+        # abort(404)
+        flash("There are no subreddits yet, create one!")
+    return s
 
 def get_subreddits():
     """
@@ -49,8 +56,10 @@ def get_subreddits():
 
     # TODO:
     # convert to mongodb
-    subreddits = []
+    # subreddits = []
     # subreddits = Subreddit.query.filter(Subreddit.id != 1)[:25]
+    subreddits = Subreddit.find({"id": {"$ne": 1}})[:25]
+    app.logger.debug("in frontends.views: subreddits: {}".format(subreddits))
     return subreddits
 
 def process_thread_paginator(trending=False, rs=None, subreddit=None):
@@ -65,36 +74,55 @@ def process_thread_paginator(trending=False, rs=None, subreddit=None):
 
     # if we are passing in a resultset, that means we are just looking to
     # quickly paginate some arbitrary data, no sorting
-    if rs:
-        thread_paginator = rs.paginate(cur_page, per_page=threads_per_page,
-            error_out=True)
+    if rs is not None:
+        # thread_paginator = rs.paginate(cur_page, per_page=threads_per_page,
+        #     error_out=True)
+        app.logger.debug(rs)
+        thread_paginator=db_utils.paginate(rs, page_num=cur_page, page_size=threads_per_page)
         return thread_paginator
 
     # sexy line of code :)
-    base_query = subreddit.threads if subreddit else Thread.query
+    app.logger.debug("subreddit: {}".format(subreddit))
+    if subreddit is not None:
+        app.logger.debug("subreddit.threads: {}".format(subreddit.get_threads()))
+    app.logger.debug("Thread: {}".format(Thread.find()))
+    def get_base_query():
+        if subreddit is not None and subreddit.get_threads() is not None:
+            app.logger.debug("subreddit.threads: {}".format(subreddit.get_threads()))
+            return subreddit.get_threads()
+        else:
+            return Thread.find()
 
+
+    base_query = get_base_query()
+    app.logger.debug("base_query: {}".format(base_query))
+    app.logger.debug("base_query: {}".format([x for x in base_query]))
+    base_query = get_base_query()
     if trending:
-        thread_paginator = base_query.order_by(db.desc(Thread.votes)).\
-        paginate(cur_page, per_page=threads_per_page, error_out=True)
+        thread_paginator = base_query.sort([("votes", pymongo.DESCENDING)])
+        thread_paginator = db_utils.paginate(thread_paginator,
+            page_num=cur_page, page_size=threads_per_page)
+        app.logger.debug("thread_paginator: {}".format(thread_paginator[:]))
     else:
-        thread_paginator = base_query.order_by(db.desc(Thread.hotness)).\
-                paginate(cur_page, per_page=threads_per_page, error_out=True)
+        thread_paginator = base_query.sort([("hotness", pymongo.DESCENDING)])
+        thread_paginator = db_utils.paginate(thread_paginator, page_num=cur_page, page_size=threads_per_page)
     return thread_paginator
 
-#@bp.route('/<regex("trending"):trending>/')
+# @bp.route('/<regex("trending"):trending>/')
 @bp.route('/')
 def home(trending=False):
     """
     If not trending we order by creation date
     """
-    trending = True if request.args.get('trending') else False
+    trending = True if request.args.get('trending') else trending
     subreddits = get_subreddits()
-
+    app.logger.debug("subreddits: {}".format([x for x in subreddits]))
 
     #---------------------------------------------------------------------
     # TODO: fix pagination
-    # thread_paginator = process_thread_paginator(trending)
-    thread_paginator = []
+    thread_paginator = process_thread_paginator(trending=trending)
+    app.logger.debug("thread_paginator: {}".format(thread_paginator))
+    # thread_paginator = []
     #---------------------------------------------------------------------
 
 
@@ -103,23 +131,27 @@ def home(trending=False):
             cur_subreddit=home_subreddit(),
             thread_paginator=thread_paginator)
 
-# @bp.route('/search/', methods=['GET'])
-# def search():
-#     """
-#     Allows users to search threads and comments
-#     """
-#     query = request.args.get('query')
-#     rs = search_module.search(query, orderby='creation', search_title=True,
-#             search_text=True, limit=100)
-#
-#     thread_paginator = process_thread_paginator(rs=rs)
-#     rs = rs.all()
-#     num_searches = len(rs)
-#     subreddits = get_subreddits()
-#
-#     return render_template('home.html', user=g.user,
-#             subreddits=subreddits, cur_subreddit=home_subreddit(),
-#             thread_paginator=thread_paginator, num_searches=num_searches)
+@bp.route('/search/', methods=['GET'])
+def search():
+    """
+    Allows users to search threads and comments
+    """
+    query = request.args.get('query')
+    rs = search_utils.search(query, orderby='date_created', search_title=True,
+            search_text=True, limit=100)
+
+    thread_paginator = process_thread_paginator(rs=rs)
+
+    num_searches = 0
+    app.logger.debug("rs: {}".format(rs))
+    if rs:
+        num_searches = rs.count()
+
+    subreddits = get_subreddits()
+
+    return render_template('home.html', user=g.user,
+            subreddits=subreddits, cur_subreddit=home_subreddit(),
+            thread_paginator=thread_paginator, num_searches=num_searches)
 
 @bp.route('/login/', methods=['GET', 'POST'])
 def login():
@@ -140,9 +172,15 @@ def login():
     if form.validate_on_submit():
         # continue where we left off if so
         # user = User.query.filter_by(email=form.email.data).first()
-        # document = users.find_one_or_404({'email': form.email.data})#.first()
-        user = User.find_one({'email': form.email.data})
+
+        # app.logger.debug(db.users.find({'email': form.email.data})[0])
+        app.logger.debug({'email': form.email.data})
+
+        app.logger.debug(User.find({'email': form.email.data}))
+        user = User.find({'email': form.email.data})[0]
+        app.logger.debug("user: {user}".format(user=user))
         app.logger.debug("finding email: {}".format(form.email.data))
+        app.logger.debug("user found: {}".format((user.email, user.username)))
         # user = edict(user)
 
         # user = User(document=document)
@@ -172,6 +210,7 @@ def login():
 @requires_login
 def logout():
     session.pop('user_id', None)
+    app.logger.debug("logging out")
     return redirect(url_for('frontends.home'))
 
 @bp.route('/register/', methods=['GET', 'POST'])
