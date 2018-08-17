@@ -74,7 +74,9 @@ def submit(subreddit_name=None):
         text = form.text.data.strip()
 
         thread_data = {"title":title, "link":link, "text":text,
-                "user_id":user_id, "subreddit_id":subreddit.id}
+                "user_id":user_id, "subreddit_id":subreddit.id,
+                "user": g.user,
+                "subreddit": subreddit}
         thread = Thread(**thread_data)
 
         if not meets_thread_criteria(thread):
@@ -116,8 +118,11 @@ def thread_permalink(subreddit_name=None, thread_id=None, title=None):
     """
     """
     thread_id = thread_id #or -99
-    thread = Thread.find_one_or_404({"id": ObjectId(thread_id)})
-    subreddit = Subreddit.find_one(name=subreddit_name)
+    app.logger.debug("thread_id: {}".format(thread_id))
+    thread = Thread.find({"id": ObjectId(thread_id)})[0]
+
+    app.logger.debug(Subreddit.find({"name":subreddit_name}))
+    subreddit = Subreddit.find({"name":subreddit_name})[0]
     subreddits = get_subreddits()
     return render_template('threads/permalink.html', user=g.user, thread=thread,
             cur_subreddit=subreddit, subreddits=subreddits)

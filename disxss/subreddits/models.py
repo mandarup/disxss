@@ -35,7 +35,8 @@ class Subreddit(Document):
     desc = fields.StrField(validate=validate.Length(max=SUBREDDIT.MAX_DESCRIPTION))
 
     # admin_id = db.Column(db.Integer, db.ForeignKey('users_user.id'))
-    admin_id  = fields.ReferenceField("User")
+    admin_id = fields.ObjectIdField()
+    admin  = fields.ReferenceField("User")
 
     # created_on = db.Column(db.DateTime, default=db.func.now())
     # updated_on = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
@@ -45,7 +46,6 @@ class Subreddit(Document):
     # threads = db.relationship('Thread', backref='subreddit', lazy='dynamic')
     # threads = fields.ReferenceField("Thread") # Integer?
 
-    # status = db.Column(db.SmallInteger, default=SUBREDDIT.ALIVE)
     status = fields.IntegerField(default=SUBREDDIT.ALIVE)
 
     class Meta:

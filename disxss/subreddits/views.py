@@ -52,7 +52,8 @@ def submit():
             return render_template('subreddits/submit.html', form=form, user=g.user,
                 subreddits=get_subreddits())
 
-        _new_subreddit = {"name":name, "desc":desc, "admin_id":user_id}
+        _new_subreddit = {"name":name, "desc":desc, "admin_id":user_id,
+                            "admin": g.user}
         new_subreddit = Subreddit(**_new_subreddit)
         new_subreddit.commit()
 
@@ -87,6 +88,7 @@ def permalink(subreddit_name=""):
     """
     """
     subreddit = Subreddit.find_one({"name":subreddit_name})
+    app.logger.debug("subreddit: {}".format(subreddit))
     if not subreddit:
         abort(404)
 

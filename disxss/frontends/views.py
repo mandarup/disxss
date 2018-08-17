@@ -99,7 +99,7 @@ def process_thread_paginator(trending=False, rs=None, subreddit=None):
     app.logger.debug("base_query: {}".format([x for x in base_query]))
     base_query = get_base_query()
     if trending:
-        thread_paginator = base_query.sort([("votes", pymongo.DESCENDING)])
+        thread_paginator = base_query.sort([("num_votes", pymongo.DESCENDING)])
         thread_paginator = db_utils.paginate(thread_paginator,
             page_num=cur_page, page_size=threads_per_page)
         app.logger.debug("thread_paginator: {}".format(thread_paginator[:]))
@@ -266,7 +266,7 @@ def register():
                 }
 
         # user = User(**userdoc).save()
-        User.ensure_indexes()
+        # User.ensure_indexes()
 
         try:
             user = User(**data)

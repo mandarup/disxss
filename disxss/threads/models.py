@@ -20,9 +20,9 @@ from disxss.threads import constants as THREAD
 from disxss import utils
 from disxss import media
 from disxss import instance
-# from disxss.users.models import User
+from disxss.users import models as user_model
 from disxss.subreddits import models as subreddits_model
-
+from disxss import app
 
 # thread_upvotes = db.Table('thread_upvotes',
 #     db.Column('user_id', db.Integer, db.ForeignKey('users_user.id')),
@@ -65,8 +65,6 @@ class Thread(Document):
     """
     # __tablename__ = 'threads_thread'
 
-    # id = db.IntField()
-    # title = fields.StrField(THREAD.MAX_TITLE) # b.StringField(THREAD.MAX_TITLE)
     title = fields.StrField(validate=validate.Length(max=THREAD.MAX_TITLE),
                             default=None) # b.StringField(THREAD.MAX_TITLE)
 
@@ -84,31 +82,28 @@ class Thread(Document):
     user = fields.ReferenceField("User") # Integer?
     subreddit = fields.ReferenceField("Subreddit")
 
-
     comment_ids = fields.ListField(fields.ObjectIdField())
     comments = fields.ListField(fields.ReferenceField("Comment"))
 
-    date_created = fields.DateTimeField(default=datetime.datetime.now())
-    date_modified = fields.DateTimeField(default=datetime.datetime.now())
+    date_created = fields.DateTimeField(
+        default=datetime.datetime.now(),
+        missing=datetime.datetime.now())
+    date_modified = fields.DateTimeField(
+        default=datetime.datetime.now(),
+        missing=datetime.datetime.now(),)
 
-    # created_on = db.CreatedField()
-    # updated_on = db.ModifiedField()
-
-    # comments = fields.ReferenceField('Comment', backref='thread', lazy='dynamic')
-    #
     status = fields.IntegerField(default=THREAD.ALIVE)
 
-    votes = fields.IntegerField()
-    hotness = fields.IntegerField()
-
-    # def __init__(self):
-    #     self.subreddit = self.get_subreddit()
+    num_votes = fields.IntegerField(default=0, missing=0)
+    hotness = fields.IntegerField(default=0, missing=0)
 
     def update(self):
         if not self.date_created:
             self.date_created = datetime.datetime.now()
         self.date_modified = datetime.datetime.now()
-        self.subreddit = self.get_subreddit()
+        # self.subreddit = self.get_subreddit()
+        # self.user = self.get_user()
+        self.set_hotness()
         return self
 
     class Meta:
@@ -117,8 +112,11 @@ class Thread(Document):
         indexes = ('username', '$text', 'title')
 
 
-    def get_subreddit(self):
-        return subreddits_model.Subreddit.find({"id": self.subreddit_id})[0]
+    # def get_subreddit(self):
+    #     return subreddits_model.Subreddit.find({"id": self.subreddit_id})[0]
+
+    # def get_user(self):
+    #     return user_model.User.find({"id": self.user_id})[0]
 
 
     # def __init__(self, title, text, link, user_id, subreddit_id):
@@ -180,27 +178,27 @@ class Thread(Document):
     #     """
     #     return THREAD.STATUS[self.status]
     #
-    # def get_age(self):
-    #     """
-    #     returns the raw age of this thread in seconds
-    #     """
-    #     return (self.created_on - datetime.datetime(1970, 1, 1)).total_seconds()
-    #
-    # def get_hotness(self):
-    #     """
-    #     returns the reddit hotness algorithm (votes/(age^1.5))
-    #     """
-    #     order = math.log(max(abs(self.votes), 1), 10) # Max/abs are not needed in our case
-    #     seconds = self.get_age() - 1134028003
-    #     return round(order + seconds / 45000, 6)
-    #
-    # def set_hotness(self):
-    #     """
-    #     returns the reddit hotness algorithm (votes/(age^1.5))
-    #     """
-    #     self.hotness = self.get_hotness()
-    #
-    #
+    def get_age(self):
+        """
+        returns the raw age of this thread in seconds
+        """
+        return (self.date_created - datetime.datetime(1970, 1, 1)).total_seconds()
+
+    def get_hotness(self):
+        """
+        returns the reddit hotness algorithm (votes/(age^1.5))
+        """
+        order = math.log(max(abs(self.num_votes), 1), 10) # Max/abs are not needed in our case
+        seconds = self.get_age() - 1134028003
+        return round(order + seconds / 45000, 6)
+
+    def set_hotness(self):
+        """
+        returns the reddit hotness algorithm (votes/(age^1.5))
+        """
+        self.hotness = self.get_hotness()
+
+
     def pretty_date(self, typeof='created'):
         """
         returns a humanized version of the raw age of this thread,
@@ -210,34 +208,36 @@ class Thread(Document):
             return utils.pretty_date(self.date_created)
         elif typeof == 'updated':
             return utils.pretty_date(self.date_modified)
-    #
-    # def add_comment(self, comment_text, comment_parent_id, user_id):
-    #     """
-    #     add a comment to this particular thread
-    #     """
-    #     if len(comment_parent_id) > 0:
-    #         # parent_comment = Comment.query.get_or_404(comment_parent_id)
-    #         # if parent_comment.depth + 1 > THREAD.MAX_COMMENT_DEPTH:
-    #         #    flash('You have exceeded the maximum comment depth')
-    #         comment_parent_id = ObjectId(comment_parent_id)
-    #         comment = Comment(thread_id=ObjectId(self.id), user_id=user_id,
-    #                 text=comment_text, parent_id=comment_parent_id)
-    #     else:
-    #         comment = Comment(thread_id=self.id, user_id=user_id,
-    #                 text=comment_text)
-    #
-    #     # db.session.add(comment)
-    #     # db.session.commit()
-    #     comment.set_depth()
-    #     return comment
-    #
+
+    def add_comment(self, comment_text, comment_parent_id, user_id):
+        """
+        add a comment to this particular thread
+        """
+        if len(comment_parent_id) > 0:
+            # parent_comment = Comment.query.get_or_404(comment_parent_id)
+            # if parent_comment.depth + 1 > THREAD.MAX_COMMENT_DEPTH:
+            #    flash('You have exceeded the maximum comment depth')
+            comment_parent_id = ObjectId(comment_parent_id)
+            comment = Comment(thread_id=ObjectId(self.id), user_id=user_id,
+                       text=comment_text, parent_id=comment_parent_id)
+        else:
+            comment = Comment(thread_id=self.id, user_id=user_id,
+                    text=comment_text)
+
+        # db.session.add(comment)
+        # db.session.commit()
+        comment.set_depth()
+        comment.commit()
+        return comment
+
     # def get_voter_ids(self):
     #     """
     #     return ids of users who voted this thread up
     #     """
-    #     select = thread_upvotes.select(thread_upvotes.c.thread_id==self.id)
-    #     rs = db.engine.execute(select)
-    #     ids = rs.fetchall() # list of tuples
+    #     upvotes = ThreadUpvote.find({"thread_id":self.id})
+    #     # rs = db.engine.execute(select)
+    #     # ids = rs.fetchall() # list of tuples
+    #     ids = [v.user_id for v in upvotes]
     #     return ids
 
     def has_voted(self, user_id):
@@ -258,38 +258,53 @@ class Thread(Document):
 
         return False if select_votes == 0 else True
 
-    # def vote(self, user_id):
-    #     """
-    #     allow a user to vote on a thread. if we have voted already
-    #     (and they are clicking again), this means that they are trying
-    #     to unvote the thread, return status of the vote for that user
-    #     """
-    #     already_voted = self.has_voted(user_id)
-    #     vote_status = None
-    #     if not already_voted:
-    #         # vote up the thread
-    #         db.engine.execute(
-    #             thread_upvotes.insert(),
-    #             user_id   = user_id,
-    #             thread_id = self.id
-    #         )
-    #         self.votes = self.votes + 1
-    #         vote_status = True
-    #     else:
-    #         # unvote the thread
-    #         db.engine.execute(
-    #             thread_upvotes.delete(
-    #                 db.and_(
-    #                     thread_upvotes.c.user_id == user_id,
-    #                     thread_upvotes.c.thread_id == self.id
-    #                 )
-    #             )
-    #         )
-    #         self.votes = self.votes - 1
-    #         vote_status = False
-    #     db.session.commit() # for the vote count
-    #     return vote_status
-    #
+    def vote(self, user_id):
+        """
+        allow a user to vote on a thread. if we have voted already
+        (and they are clicking again), this means that they are trying
+        to unvote the thread, return status of the vote for that user
+        """
+        already_voted = self.has_voted(user_id)
+        vote_status = None
+        if not already_voted:
+            # vote up the thread
+            # db.engine.execute(
+            #     thread_upvotes.insert(),
+            #     user_id   = user_id,
+            #     thread_id = self.id
+            # )
+
+            upvote = {
+                    "user_id" : user_id,
+                    "thread_id" : self.id
+            }
+            ThreadUpvote(**upvote)
+
+            self.num_votes = self.num_votes + 1
+            vote_status = True
+        else:
+            # unvote the thread
+            # db.engine.execute(
+            #     thread_upvotes.delete(
+            #         db.and_(
+            #             thread_upvotes.c.user_id == user_id,
+            #             thread_upvotes.c.thread_id == self.id
+            #         )
+            #     )
+            # )
+
+            query = {"$and":[{"userid":user_id},
+                            {"thread_id":self.id}]}
+            ThreadUpvote.remove(query)
+
+            self.num_votes = self.num_votes - 1
+            vote_status = False
+
+        app.logger.debug("vote_status: {}".format(vote_status))
+        ThreadUpvote.commit()
+        # db.session.commit() # for the vote count
+        return vote_status
+
     # def extract_thumbnail(self):
     #     """
     #     ideally this type of heavy content fetching should be put on a
@@ -328,27 +343,19 @@ class Comment(Document):
     """
     # __tablename__ = 'threads_comment'
 
-    # text = db.StringField(THREAD.MAX_BODY, default=None)
     text = fields.StringField(default=None,
                                validate=validate.Length(max=THREAD.MAX_BODY))
 
-    #
-    # user_id = db.IntField()
-    # thread_id = db.Column(db.Integer, db.ForeignKey('threads_thread.id'))
     user_id = fields.ObjectIdField() # Integer?
     thread_id = fields.ObjectIdField() # Integer?
 
     user = fields.ReferenceField("User") # Integer?
     thread = fields.ReferenceField("Thread") # Integer?
 
-    # parent_id = db.Column(db.Integer, db.ForeignKey('threads_comment.id'))
-    # children = db.relationship('Comment', backref=db.backref('parent',
-    #         remote_side=[id]), lazy='dynamic')
-    #
-    # depth = db.Column(db.Integer, default=1) # start at depth 1
-    #
-    # created_on = db.Column(db.DateTime, default=db.func.now())
-    # updated_on = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+    parent_id = fields.ObjectIdField()
+    children = fields.ReferenceField('Comment')
+
+    depth = fields.IntField( default=1, missing=1) # start at depth 1
 
     date_created = fields.DateTimeField(default=datetime.datetime.now(),
                                         missing=datetime.datetime.now())
@@ -356,26 +363,8 @@ class Comment(Document):
         default=datetime.datetime.now(),
         missing=datetime.datetime.now())
 
+    num_votes = fields.IntegerField(default=0, missing=0)
 
-    # votes = db.Column(db.Integer, default=1)
-    #
-    # id = db.IntField()
-    # title = db.StringField(THREAD.MAX_TITLE)
-    # text = db.StringField(THREAD.MAX_BODY, default=None)
-    # link = db.StringField(THREAD.MAX_LINK, default=None)
-    # thumbnail = db.StringField(THREAD.MAX_LINK, default=None)
-    #
-    # user_id = db.IntField()
-    # subreddit_id = db.IntField()
-    #
-    # created_on = db.CreatedField()
-    # updated_on = db.ModifiedField()
-    # # comments = db.relationship('Comment', backref='thread', lazy='dynamic')
-    #
-    # status = db.IntField(default=THREAD.ALIVE)
-    #
-    # votes = db.IntField()
-    # hotness = db.IntField()
 
     class Meta:
         collection_name = 'comments'
@@ -405,49 +394,62 @@ class Comment(Document):
     #               }
     #     return comment
     #
-    # def set_depth(self):
-    #     """
-    #     call after initializing
-    #     """
-    #     if self.parent:
-    #         self.depth = self.parent.depth + 1
-    #         db.session.commit()
-    #
-    # def get_comments(self, order_by='timestamp'):
-    #     """
-    #     default order by timestamp
-    #     """
-    #     if order_by == 'timestamp':
-    #         return self.children.order_by(db.desc(Comment.created_on)).\
-    #             all()[:THREAD.MAX_COMMENTS]
-    #     else:
-    #         return self.comments.order_by(db.desc(Comment.created_on)).\
-    #             all()[:THREAD.MAX_COMMENTS]
-    #
-    # def get_margin_left(self):
-    #     """
-    #     nested comments are pushed right on a page
-    #     -15px is our default margin for top level comments
-    #     """
-    #     margin_left = 15 + ((self.depth-1) * 32)
-    #     margin_left = min(margin_left, 680)
-    #     return str(margin_left) + "px"
-    #
-    # def get_age(self):
-    #     """
-    #     returns the raw age of this thread in seconds
-    #     """
-    #     return (self.created_on - datetime.datetime(1970,1,1)).total_seconds()
-    #
-    # def pretty_date(self, typeof='created'):
-    #     """
-    #     returns a humanized version of the raw age of this thread,
-    #     eg: 34 minutes ago versus 2040 seconds ago.
-    #     """
-    #     if typeof == 'created':
-    #         return utils.pretty_date(self.created_on)
-    #     elif typeof == 'updated':
-    #         return utils.pretty_date(self.updated_on)
+    def set_depth(self):
+        """
+        call after initializing
+        """
+        num_children = self.children.fetch().count()
+        app.logger.debug("num_children: {}".format(num_children))
+        if num_children > 0:
+            self.depth = self.parent.depth + 1
+            self.commit()
+
+    def get_comments(self, order_by='timestamp'):
+        """
+        default order by timestamp
+        """
+        app.logger.debug("in comments model.get_comments")
+        if order_by == 'timestamp':
+            # return self.children.order_by(db.desc(Comment.created_on)).\
+            #     all()[:THREAD.MAX_COMMENTS]
+            comments = (self.children.fetch()
+                .sort([("date_created", pymongo.ASCENDING)])
+                [:THREAD.MAX_COMMENTS])
+            app.logger.debug(comments)
+            return comments
+        else:
+            # return self.comments.order_by(db.desc(Comment.created_on)).\
+            #     all()[:THREAD.MAX_COMMENTS]
+            comments =  (self.comments.fetch().sort(
+                [("date_created", pymongo.ASCENDING)])
+                [:THREAD.MAX_COMMENTS])
+            app.logger.debug(comments)
+            return comments
+
+    def get_margin_left(self):
+        """
+        nested comments are pushed right on a page
+        -15px is our default margin for top level comments
+        """
+        margin_left = 15 + ((self.depth-1) * 32)
+        margin_left = min(margin_left, 680)
+        return str(margin_left) + "px"
+
+    def get_age(self):
+        """
+        returns the raw age of this thread in seconds
+        """
+        return (self.date_created - datetime.datetime(1970,1,1)).total_seconds()
+
+    def pretty_date(self, typeof='created'):
+        """
+        returns a humanized version of the raw age of this thread,
+        eg: 34 minutes ago versus 2040 seconds ago.
+        """
+        if typeof == 'created':
+            return utils.pretty_date(self.date_created)
+        elif typeof == 'updated':
+            return utils.pretty_date(self.date_modified)
 
     def vote(self, direction):
         """
