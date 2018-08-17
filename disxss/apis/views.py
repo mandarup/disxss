@@ -41,7 +41,7 @@ def submit_comment():
     if not comment_text:
         abort(404)
 
-    thread = Thread.find_one_or_404({"thread_id": ObjectId(thread_id)})
+    thread = Thread.find_one({"thread_id": ObjectId(thread_id)})[0]
     comment = thread.add_comment(comment_text, comment_parent_id,
             g.user.id)
 
