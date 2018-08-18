@@ -104,6 +104,7 @@ class Thread(Document):
         # self.subreddit = self.get_subreddit()
         # self.user = self.get_user()
         self.set_hotness()
+        self.extract_thumbnail()
         return self
 
     class Meta:
@@ -305,20 +306,20 @@ class Thread(Document):
         # db.session.commit() # for the vote count
         return vote_status
 
-    # def extract_thumbnail(self):
-    #     """
-    #     ideally this type of heavy content fetching should be put on a
-    #     celery background task manager or at least a crontab.. instead of
-    #     setting it to run literally as someone posts a thread. but once again,
-    #     this repo is just a simple example of a reddit-like crud application!
-    #     """
-    #     DEFAULT_THUMBNAIL = 'https://reddit.codelucas.com/static/imgs/reddit-camera.png'
-    #     if self.link:
-    #         thumbnail = media.get_top_img(self.link)
-    #     if not thumbnail:
-    #         thumbnail = DEFAULT_THUMBNAIL
-    #     self.thumbnail = thumbnail
-    #     db.session.commit()
+    def extract_thumbnail(self):
+        """
+        ideally this type of heavy content fetching should be put on a
+        celery background task manager or at least a crontab.. instead of
+        setting it to run literally as someone posts a thread. but once again,
+        this repo is just a simple example of a reddit-like crud application!
+        """
+        DEFAULT_THUMBNAIL = 'https://reddit.codelucas.com/static/imgs/reddit-camera.png'
+        if self.link:
+            thumbnail = media.get_top_img(self.link)
+        if not thumbnail:
+            thumbnail = DEFAULT_THUMBNAIL
+        self.thumbnail = thumbnail
+        self.commit()
 
     def get_comments(self):
         app.logger.debug(list(Comment.find({"thread_id":self.id})))
