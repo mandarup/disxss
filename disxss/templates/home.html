@@ -9,7 +9,6 @@
       {% endif %}
       <div class="spacer"></div>
 
-      {# TODO: enable threads after defining threads module #}
       {% for thread in thread_paginator %}
         <div name="{{ thread.id }}" class="row listing-row">
           <div class="col-lg-1 listing-vote-box">
@@ -31,18 +30,26 @@
           </div>
           <div class="col-lg-8 listing-text">
               {% if thread.link %}
-              <a href="{{ thread.link }}" class="listing-title">
+                    <a href="{{ thread.link }}" class="listing-title">
               {% else %}
-              <a href="{{ config.ROOT_URL }}/threads/{{ thread.subreddit.fetch().name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}" class="listing-title">
+                    <a href="{{ url_for('threads.thread_permalink',
+                                  subreddit_name=thread.subreddit.fetch().name,
+                                  thread_id=thread.id,
+                                  title=thread.title) }}">
+                       {# href="{{ config.ROOT_URL }}/threads/{{ thread.subreddit.fetch().name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}/" class="listing-title"> #}
               {% endif %}
                 <h4 class="listing-title-text">{{ thread.title }}</h4>
               </a>
 
               <div class="post-listing-meta">
-                  <a href="{{ config.ROOT_URL }}/threads/{{ thread.subreddit.fetch().name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}">
-                     {#<!-- {{ thread.comments()|length() }} comments -->#}
-                     {{ thread.get_comment_count() }} comments
+                  <a href="{{ url_for('threads.thread_permalink',
+                                subreddit_name=thread.subreddit.fetch().name,
+                                thread_id=thread.id,
+                                title=thread.title) }}">
+                      <!-- {# href="{{ config.ROOT_URL }}/threads/{{ thread.subreddit.fetch().name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}/" > #} -->
+                      {#<!-- {{ thread.comments()|length() }} comments -->#}
 
+                      {{ thread.get_comment_count() }} comments
                   </a>,
                   {{ thread.pretty_date() }}, by
                   <a href="{{ url_for('users.home_page',
