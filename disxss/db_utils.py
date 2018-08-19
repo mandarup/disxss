@@ -55,8 +55,8 @@ def init_db():
 
 
 def populate_db():
-    User.collection.drop()
-    User.ensure_indexes()
+    # User.collection.drop()
+    # User.ensure_indexes()
 
 
     for data in [
@@ -80,6 +80,25 @@ def populate_db():
         }
     ]:
         User(**data).commit()
+
+    a_user = User.find_one()
+    _new_subreddit = {"name":"test_subreddit",
+                        "desc":"test desc",
+                        "admin_id":a_user.id,
+                        "admin": a_user}
+    new_subreddit = Subreddit(**_new_subreddit)
+    new_subreddit.commit()
+
+
+    thread_data = {"title":"test thread", "link":"disxss.com",
+            "text":"not alive",
+            "user_id":a_user.id,
+            "subreddit_id":Subreddit.find_one().id,
+            "user": a_user,
+            "subreddit": Subreddit.find_one()}
+    thread = Thread(**thread_data)
+    thread.update()
+    thread.commit()
 
 
 
