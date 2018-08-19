@@ -119,10 +119,10 @@ def thread_permalink(subreddit_name=None, thread_id=None, title=None):
     """
     thread_id = thread_id #or -99
     app.logger.debug("thread_id: {}".format(thread_id))
-    thread = Thread.find({"id": ObjectId(thread_id)})[0]
+    thread = Thread.find_one({"id": ObjectId(thread_id)})
 
     app.logger.debug(Subreddit.find({"name":subreddit_name}))
-    subreddit = Subreddit.find({"name":subreddit_name})[0]
+    subreddit = Subreddit.find_one({"name":subreddit_name})
     subreddits = get_subreddits()
     return render_template('threads/permalink.html', user=g.user, thread=thread,
             cur_subreddit=subreddit, subreddits=subreddits)
