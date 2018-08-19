@@ -41,7 +41,8 @@ def meets_thread_criteria(thread):
         return False
 
     dup_link = Thread.find_one({"link":thread.link})
-    if not thread.text and dup_link:
+    app.logger.debug("duplicate link: {}".format(dup_link))
+    if not thread.text or dup_link:
         flash('someone has already posted the same link as you!', 'danger')
         return False
 
