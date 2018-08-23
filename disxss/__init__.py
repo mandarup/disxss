@@ -97,11 +97,12 @@ app.register_blueprint(frontends_bp)
 from disxss.threads.views import bp as  threads_bp
 app.register_blueprint(threads_bp)
 
-# from disxss.apis.views import mod as apis_module
-# app.register_blueprint(apis_module)
 
 from disxss.subreddits.views import bp as subreddits_bp
 app.register_blueprint(subreddits_bp)
+
+from disxss.apis.views import bp as apis_bp
+app.register_blueprint(apis_bp)
 
 
 def custom_render(template, *args, **kwargs):

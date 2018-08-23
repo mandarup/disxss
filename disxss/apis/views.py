@@ -6,11 +6,13 @@ must be contained in this file.
 from flask import (Blueprint, request, render_template, flash, g,
         session, redirect, url_for, jsonify, abort)
 from werkzeug import check_password_hash, generate_password_hash
+from bson import json_util, ObjectId
 
 # from flask_reddit import db
 from disxss.users.models import User
 from disxss.threads.models import Thread, Comment
 from disxss.users.decorators import requires_login
+from disxss import app
 
 bp = Blueprint('apis', __name__, url_prefix='/apis')
 
@@ -19,8 +21,8 @@ bp = Blueprint('apis', __name__, url_prefix='/apis')
 def before_request():
     g.user = None
     if 'user_id' in session:
-        g.user = User.find({'id': ObjectId(session['user_id'])})[0]
-        app.logger.debug("filter user : {}".format(session['user_id']))
+        g.user = User.find_one({'id': ObjectId(session['user_id'])})
+        app.logger.debug("filter user apis : {}".format(session['user_id']))
 
 
 @bp.route('/comments/submit/', methods=['POST'])
@@ -41,12 +43,12 @@ def submit_comment():
     if not comment_text:
         abort(404)
 
-    thread = Thread.find_one({"thread_id": ObjectId(thread_id)})[0]
+    thread = Thread.find_one({"id": ObjectId(thread_id)})
     comment = thread.add_comment(comment_text, comment_parent_id,
             g.user.id)
 
     return jsonify(comment_text=comment.text, date=comment.pretty_date(),
-            username=g.user.username, comment_id=comment.id,
+            username=g.user.username, comment_id=str(comment.id),
             margin_left=comment.get_margin_left())
 
 @bp.route('/threads/vote/', methods=['POST'])
@@ -62,7 +64,7 @@ def vote_thread():
     if not thread_id:
         abort(404)
 
-    thread = Thread.find_one({"thread_id": thread_id})[0]
+    thread = Thread.find_one({"thread_id": thread_id})
     vote_status = thread.vote(user_id=user_id)
     app.logger.debug(thread)
     app.logger.debug("vote_status: {}".format(vote_status))

@@ -214,21 +214,31 @@ class Thread(Document):
         """
         add a comment to this particular thread
         """
-        if len(comment_parent_id) > 0:
+
+        if comment_parent_id.strip().replace(" ",""):
             # parent_comment = Comment.query.get_or_404(comment_parent_id)
             # if parent_comment.depth + 1 > THREAD.MAX_COMMENT_DEPTH:
             #    flash('You have exceeded the maximum comment depth')
             comment_parent_id = ObjectId(comment_parent_id)
-            comment = Comment(thread_id=ObjectId(self.id), user_id=user_id,
-                       text=comment_text, parent_id=comment_parent_id)
+            comment = Comment(thread_id=ObjectId(self.id),
+                                user_id=ObjectId(user_id),
+                                text=comment_text,
+                                parent_id=comment_parent_id,
+                                parent=Comment.find_one({"id":comment_parent_id}))
         else:
-            comment = Comment(thread_id=self.id, user_id=user_id,
+            comment = Comment(thread_id=ObjectId(self.id),
+                    user_id=ObjectId(user_id),
                     text=comment_text)
 
         # db.session.add(comment)
         # db.session.commit()
-        comment.set_depth()
         comment.commit()
+        comment.set_depth()
+
+        comment.commit()
+
+        self.comments.append(comment)
+        self.comment_ids.append(comment.id)
         return comment
 
     # def get_voter_ids(self):
@@ -353,8 +363,9 @@ class Comment(Document):
     user = fields.ReferenceField("User") # Integer?
     thread = fields.ReferenceField("Thread") # Integer?
 
-    parent_id = fields.ObjectIdField()
-    children = fields.ReferenceField('Comment')
+    parent_id = fields.ObjectIdField(missing=None)
+    # children = fields.ReferenceField('Comment')
+    parent = fields.ReferenceField('Comment', missing=None)
 
     depth = fields.IntField( default=1, missing=1) # start at depth 1
 
@@ -394,26 +405,69 @@ class Comment(Document):
     #               "parent_id": self.parent_id,
     #               }
     #     return comment
+
+    # def get_all_children(self):
+    #     def get_children(parent_id, children=[]):
+    #         children += Comment.find({"parent_id":parent_id})
+    #         return children
     #
+    #     def recursive_children(parent_id, children=[]):
+    #         if children:
+    #             for c in children:
+    #                 return recursive_children(c.id)
+    #
+    #     for c in get_children():
+    #         recursive_children(parent_id, children)
+    #
+    #     for c in Comment.find({"parent_id":parent_id}):
+    #         children += get_children(c.id, children=children)
+    #
+    #     parent_id = copy.copy(self.id)
+    #     Comment.find({"parent_id": self.id})
+    #
+    #     children = Comment.find({"parent_id":parent_id})
+    #
+    #     grandchildren = copy.copy(children)
+    #     for child in copy.copy(children):
+    #         grandchildren += get_recursive_children(child,
+
+    def get_children(self):
+        return Comment.find({"parent_id": self.id})
+
+    def get_children_count(self):
+        return self.get_children().count()
+
     def set_depth(self):
         """
         call after initializing
         """
-        num_children = self.children.fetch().count()
+        app.logger.debug("comments: {}".format([x for x in Comment.find()]))
+        app.logger.debug("comments: {}".format(list(Comment.find())))
+        for c in Comment.find():
+            app.logger.debug("comment: {}".format(c))
+            app.logger.debug("self.id, parent.id: {}".format((self.id, self.parent_id)))
+
+
+        num_children = self.get_children_count()
         app.logger.debug("num_children: {}".format(num_children))
-        if num_children > 0:
-            self.depth = self.parent.depth + 1
+        app.logger.debug("children: \n{}".format([x for x in self.get_children()]))
+        # if num_children > 0:
+        if self.parent is not None:
+            self.depth = self.parent.fetch().depth + 1
             self.commit()
 
     def get_comments(self, order_by='timestamp'):
         """
         default order by timestamp
+
+        Note:
+            Only getting depth = 1 comments for simplicity
         """
         app.logger.debug("in comments model.get_comments")
         if order_by == 'timestamp':
             # return self.children.order_by(db.desc(Comment.created_on)).\
             #     all()[:THREAD.MAX_COMMENTS]
-            comments = (self.children.fetch()
+            comments = (Comment.find({"parent_id":parent_id})
                 .sort([("date_created", pymongo.ASCENDING)])
                 [:THREAD.MAX_COMMENTS])
             app.logger.debug(comments)
@@ -421,8 +475,8 @@ class Comment(Document):
         else:
             # return self.comments.order_by(db.desc(Comment.created_on)).\
             #     all()[:THREAD.MAX_COMMENTS]
-            comments =  (self.comments.fetch().sort(
-                [("date_created", pymongo.ASCENDING)])
+            comments =  (Comment.find({"parent_id":parent_id}).sort(
+                [("date_created", pymongo.DESCENDING)])
                 [:THREAD.MAX_COMMENTS])
             app.logger.debug(comments)
             return comments
