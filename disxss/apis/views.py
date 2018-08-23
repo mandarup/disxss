@@ -64,7 +64,7 @@ def vote_thread():
     if not thread_id:
         abort(404)
 
-    thread = Thread.find_one({"thread_id": thread_id})
+    thread = Thread.find_one({"id": thread_id})
     vote_status = thread.vote(user_id=user_id)
     app.logger.debug(thread)
     app.logger.debug("vote_status: {}".format(vote_status))

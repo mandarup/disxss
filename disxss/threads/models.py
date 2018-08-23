@@ -10,9 +10,11 @@ import datetime
 
 
 from bson.objectid import ObjectId
+import pymongo
 
 from umongo import Instance, Document, fields, ValidationError, set_gettext
 from umongo import validate
+from umongo import EmbeddedDocument
 from umongo.marshmallow_bonus import SchemaFromUmongo
 
 from disxss import db
@@ -273,7 +275,7 @@ class Thread(Document):
         # rs = db.engine.execute(select_votes)
 
         select_votes = (ThreadUpvote
-                        .find({"$and": [{"user_id": user_id},
+                        .find({"$and": [{"user_id": ObjectId(user_id)},
                           {"thread_id": self.id}]})).count()
 
         return False if select_votes == 0 else True
@@ -294,11 +296,11 @@ class Thread(Document):
             #     thread_id = self.id
             # )
 
-            upvote = {
-                    "user_id" : user_id,
+            upvote_data = {
+                    "user_id" : ObjectId(user_id),
                     "thread_id" : self.id
             }
-            ThreadUpvote(**upvote)
+            upvote = ThreadUpvote(**upvote_data)
 
             self.num_votes = self.num_votes + 1
             vote_status = True
@@ -313,15 +315,17 @@ class Thread(Document):
             #     )
             # )
 
-            query = {"$and":[{"userid":user_id},
+            query = {"$and":[{"userid":ObjectId(user_id)},
                             {"thread_id":self.id}]}
-            ThreadUpvote.remove(query)
+            upvote = ThreadUpvote.remove(query)
 
             self.num_votes = self.num_votes - 1
             vote_status = False
 
         app.logger.debug("vote_status: {}".format(vote_status))
-        ThreadUpvote.commit()
+        upvote.commit()
+
+        self.commit()
         # db.session.commit() # for the vote count
         return vote_status
 
