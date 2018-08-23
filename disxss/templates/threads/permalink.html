@@ -63,11 +63,11 @@
             name="{{ comment.id }}">
             <p class="comment-body">{{ comment.text }}</p>
             <div class="post-listing-meta">
-                by: <a href="{{ url_for('users.home_page', username=comment.user.fetch().username) }}">
+                by: {#<a href="{{ url_for('users.home_page', username=comment.user.fetch().username) }}"> #}
+                    <a href="/users/{{ comment.user.fetch().username }}" >
                     {{ comment.user.fetch().username }}</a> {{ comment.pretty_date() }}
                 <a href="javascript:void(0)" class="comment-reply">reply</a>
             </div>
-
             <textarea class="nested-comment-text-box form-control"></textarea>
             <button class="btn btn-sm btn-primary submit-comment nested-submit-comment-button">
                 Submit</button>
