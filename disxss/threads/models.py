@@ -215,25 +215,34 @@ class Thread(Document):
         add a comment to this particular thread
         """
 
+        user = user_model.User.find_one({'id': ObjectId(user_id)})
+
         if comment_parent_id.strip().replace(" ",""):
             # parent_comment = Comment.query.get_or_404(comment_parent_id)
             # if parent_comment.depth + 1 > THREAD.MAX_COMMENT_DEPTH:
             #    flash('You have exceeded the maximum comment depth')
+            app.logger.error("have parent?: {}".format(comment_parent_id))
+            app.logger.debug(type(comment_parent_id))
             comment_parent_id = ObjectId(comment_parent_id)
             comment = Comment(thread_id=ObjectId(self.id),
-                                user_id=ObjectId(user_id),
+                                user_id=user.id,
                                 text=comment_text,
                                 parent_id=comment_parent_id,
-                                parent=Comment.find_one({"id":comment_parent_id}))
+                                parent=Comment.find_one({"id":comment_parent_id}),
+                                user=user,
+                                thread=self)
         else:
             comment = Comment(thread_id=ObjectId(self.id),
                     user_id=ObjectId(user_id),
-                    text=comment_text)
+                    text=comment_text,
+                    user=user,
+                    thread=self)
 
         # db.session.add(comment)
         # db.session.commit()
         comment.commit()
         comment.set_depth()
+        app.logger.debug("comment depth: {}".format(comment.depth))
 
         comment.commit()
 
@@ -467,7 +476,7 @@ class Comment(Document):
         if order_by == 'timestamp':
             # return self.children.order_by(db.desc(Comment.created_on)).\
             #     all()[:THREAD.MAX_COMMENTS]
-            comments = (Comment.find({"parent_id":parent_id})
+            comments = (Comment.find({"parent_id":self.id})
                 .sort([("date_created", pymongo.ASCENDING)])
                 [:THREAD.MAX_COMMENTS])
             app.logger.debug(comments)
@@ -475,7 +484,7 @@ class Comment(Document):
         else:
             # return self.comments.order_by(db.desc(Comment.created_on)).\
             #     all()[:THREAD.MAX_COMMENTS]
-            comments =  (Comment.find({"parent_id":parent_id}).sort(
+            comments =  (Comment.find({"parent_id":self.id}).sort(
                 [("date_created", pymongo.DESCENDING)])
                 [:THREAD.MAX_COMMENTS])
             app.logger.debug(comments)
