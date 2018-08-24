@@ -232,13 +232,17 @@ class Thread(Document):
                                 parent_id=comment_parent_id,
                                 parent=Comment.find_one({"id":comment_parent_id}),
                                 user=user,
-                                thread=self)
+                                thread=self,
+                                date_created=datetime.datetime.now(),
+                                date_modified=datetime.datetime.now())
         else:
             comment = Comment(thread_id=ObjectId(self.id),
                     user_id=ObjectId(user_id),
                     text=comment_text,
                     user=user,
-                    thread=self)
+                    thread=self,
+                    date_created=datetime.datetime.now(),
+                    date_modified=datetime.datetime.now())
 
         # db.session.add(comment)
         # db.session.commit()
