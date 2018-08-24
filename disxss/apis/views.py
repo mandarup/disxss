@@ -83,6 +83,6 @@ def vote_comment():
     if not comment_id:
         abort(404)
 
-    comment = Comment.find_one_or_404({"comment_id": ObjectId(comment_id)})
+    comment = Comment.find_one({"id": ObjectId(comment_id)})
     comment.vote(user_id=user_id)
     return jsonify(new_votes=comment.get_votes())
