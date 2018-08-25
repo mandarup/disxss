@@ -25,6 +25,7 @@ from disxss import instance
 from disxss.users import models as user_model
 from disxss.subreddits import models as subreddits_model
 from disxss import app
+from disxss import db
 
 # thread_upvotes = db.Table('thread_upvotes',
 #     db.Column('user_id', db.Integer, db.ForeignKey('users_user.id')),
@@ -43,8 +44,11 @@ comment_upvotes = db.comment_upvotes
 
 @instance.register
 class ThreadUpvote(Document):
-    user_id = fields.ReferenceField("User") # Integer?
-    thread_id = fields.ReferenceField("Thread") # Integer?
+    user_id = fields.ObjectIdField() # Integer?
+    thread_id = fields.ObjectIdField() # Integer?
+
+    user = fields.ReferenceField("User") # Integer?
+    thread = fields.ReferenceField("Thread") # Integer?
 
     class Meta:
         collection_name = "thread_upvotes"
@@ -52,8 +56,11 @@ class ThreadUpvote(Document):
 
 @instance.register
 class CommentUpvote(Document):
-    user_id = fields.ReferenceField("User") # Integer?
-    comment_id = fields.ReferenceField("Comment") # Integer?
+    user_id = fields.ObjectIdField() # Integer?
+    comment_id = fields.ObjectIdField() # Integer?
+
+    user = fields.ReferenceField("User") # Integer?
+    comment = fields.ReferenceField("Comment") # Integer?
 
     class Meta:
         collection_name = "comment_upvotes"
@@ -305,29 +312,38 @@ class Thread(Document):
                     "thread_id" : self.id
             }
             upvote = ThreadUpvote(**upvote_data)
+            upvote.commit()
+
 
             self.num_votes = self.num_votes + 1
             vote_status = True
         else:
-            # unvote the thread
-            # db.engine.execute(
-            #     thread_upvotes.delete(
-            #         db.and_(
-            #             thread_upvotes.c.user_id == user_id,
-            #             thread_upvotes.c.thread_id == self.id
-            #         )
-            #     )
-            # )
 
-            query = {"$and":[{"userid":ObjectId(user_id)},
-                            {"thread_id":self.id}]}
-            upvote = ThreadUpvote.remove(query)
+            query = {"$and":[{"user_id":ObjectId(user_id)},
+                            {"thread_id":ObjectId(self.id)}]}
+            app.logger.debug("thread_id: {}".format(self.id))
+            app.logger.debug(ThreadUpvote.find(query).count())
+
+            app.logger.debug(ThreadUpvote.__dict__)
+            app.logger.debug(ThreadUpvote.opts.__dict__)
+
+            # NOTE: Document.delete does not take query, but Document itself
+            # upvote = ThreadUpvote.delete(query)
+
+            upvote = ThreadUpvote.delete(ThreadUpvote.find_one(query))
+            # upvote.commit()
+
+            # NOTE: othe alternative is using pymongo api
+            # upvote = db.thread_upvotes.remove(query)
+            # NOTE: no need to do save:
+            # db.thread_upvotes.save()
+
+            app.logger.debug(upvote)
 
             self.num_votes = self.num_votes - 1
             vote_status = False
 
         app.logger.debug("vote_status: {}".format(vote_status))
-        upvote.commit()
 
         self.commit()
         # db.session.commit() # for the vote count
