@@ -18,6 +18,17 @@ def init_db():
         print(str(e))
     User.ensure_indexes()
 
+    try:
+        CommentUpvote.collection.drop()
+    except Exception as e:
+        print(str(e))
+    CommentUpvote.ensure_indexes()
+
+    try:
+        ThreadUpvote.collection.drop()
+    except Exception as e:
+        print(str(e))
+    ThreadUpvote.ensure_indexes()
 
     try:
         Thread.collection.drop()
@@ -31,21 +42,6 @@ def init_db():
         print(str(e))
     Comment.ensure_indexes()
 
-    try:
-        CommentUpvote.collection.drop()
-    except Exception as e:
-        print(str(e))
-
-    CommentUpvote.ensure_indexes()
-
-
-    try:
-        ThreadUpvote.collection.drop()
-    except Exception as e:
-        print(str(e))
-
-
-    ThreadUpvote.ensure_indexes()
 
     try:
         Subreddit.collection.drop()
@@ -100,6 +96,8 @@ def populate_db():
     thread.update()
     thread.commit()
 
+    # login user
+    
 
 
 def paginate(collection, page_size=10, page_num=1):
