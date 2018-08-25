@@ -41,7 +41,7 @@ def home_page(username=None):
     app.logger.debug("thread karma: {}".format(user.get_thread_karma()))
     # user = db.users.find_one_or_404({"username": username})
 
-    threads = Thread.find({'user_id': user.id})
+    # threads = Thread.find({'user_id': user.id})
     if not user:
         abort(404)
     return render_template('users/profile.html',
