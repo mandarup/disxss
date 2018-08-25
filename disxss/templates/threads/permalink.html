@@ -37,8 +37,15 @@
         <h5>Submit a comment:</h5>
         <div class="comment-form-parent">
             <textarea class="form-control thread-comment-box"></textarea>
-            <button class="btn btn-sm btn-primary submit-comment main-submit">
-                    Submit</button>
+            {#
+                <a href="{{ url_for('threads.submit_comment') }}">
+            #}
+                <button class="btn btn-sm btn-primary submit-comment main-submit">
+                         Submit</button>
+            {#
+                </a>
+            #}
+            {##}
         </div>
         {% else %}
         <br>
@@ -63,9 +70,15 @@
             name="{{ comment.id }}">
             <p class="comment-body">{{ comment.text }}</p>
             <div class="post-listing-meta">
-                by: {#<a href="{{ url_for('users.home_page', username=comment.user.fetch().username) }}"> #}
+                by:
+                    {#
+                    <a href="{{ url_for('users.home_page', username=comment.user.fetch().username) }}">
+                        {{ comment.user.fetch().username }}</a>
+                    #}
                     <a href="/users/{{ comment.user.fetch().username }}" >
-                    {{ comment.user.fetch().username }}</a> {{ comment.pretty_date() }}
+                    {{ comment.user.fetch().username }}</a>
+
+                    {{ comment.pretty_date() }}
                 <a href="javascript:void(0)" class="comment-reply">reply</a>
             </div>
             <textarea class="nested-comment-text-box form-control"></textarea>
@@ -85,7 +98,11 @@
 
 {% block scripts %}
 {{ super() }}
+
+
+
 <script type="text/javascript">
+
 
 // Inject CSRF Token
 // Some referencens
@@ -99,6 +116,7 @@ $.ajaxSetup({
         }
     }
 });
+
 
 $(document).ready(function() {
     $(document).on('click', 'button.submit-comment', function() {
@@ -148,7 +166,7 @@ $(document).ready(function() {
                         'style="margin-left:' + response.margin_left + '">' +
                         '<p class="comment-body">' + response.comment_text + '</p>' +
                         '<div class="post-listing-meta">' +
-                        'by: <a href="{{ config.ROOT_URL }}/users/{{ user.username }}/">' +
+                        'by: <a href="/users/{{ user.username }}/">' +
                         '{{ user.username }}</a>' +
                         ' ' + response.date +
                         ' <a href="javascript:void(0)" class="comment-reply">reply</a>' +
