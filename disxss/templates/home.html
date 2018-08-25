@@ -193,7 +193,6 @@ $(document).ready(function() {
         }
         {% if user is defined and user != None %}
             $.post(post_to, { thread_id: thread_id },
-                print(thread_id)
                 function(response) {
                     var new_vote_count = response.new_votes.toString();
                     var vote_status = response.vote_status;
