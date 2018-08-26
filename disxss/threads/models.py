@@ -365,8 +365,20 @@ class Thread(Document):
         self.commit()
 
     def get_comments(self):
+        app.logger.debug(list(Comment.find(
+            {"$and": [{"thread_id":self.id},
+                        {"parent":  { "$exists": True, "$eq": None }}]})))
+
+        comments = Comment.find(
+            {"$and": [{"thread_id":self.id},
+                        {"parent":  { "$exists": True, "$eq": None }}]})
+        # return list(Comment.find({"thread_id":self.id}))
+        return list(comments)
+
+    def get_all_comments(self):
         app.logger.debug(list(Comment.find({"thread_id":self.id})))
         return list(Comment.find({"thread_id":self.id}))
+
 
     def get_comment_count(self):
         return Comment.find({"thread_id":self.id}).count()
@@ -501,10 +513,18 @@ class Comment(Document):
             # return self.children.order_by(db.desc(Comment.created_on)).\
             #     all()[:THREAD.MAX_COMMENTS]
             comments = (Comment.find({"parent_id":self.id})
-                .sort([("date_created", pymongo.ASCENDING)])
-                [:THREAD.MAX_COMMENTS])
-            app.logger.debug(comments)
-            return comments
+                        .sort([("date_created", pymongo.ASCENDING)])
+                        [:THREAD.MAX_COMMENTS])
+            app.logger.debug("".join(["\n\t{}: child of {}"
+                .format(x.text, x.parent.fetch().text)  for x in comments]))
+            comments = (Comment.find({"parent_id":self.id})
+                        .sort([("date_created", pymongo.ASCENDING)])
+                        [:THREAD.MAX_COMMENTS])
+            app.logger.debug("returing: {}".format(comments))
+            comments = (Comment.find({"parent_id":self.id})
+                        .sort([("date_created", pymongo.ASCENDING)])
+                        [:THREAD.MAX_COMMENTS])
+            return list(comments)
         else:
             # return self.comments.order_by(db.desc(Comment.created_on)).\
             #     all()[:THREAD.MAX_COMMENTS]
