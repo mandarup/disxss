@@ -74,6 +74,14 @@ def get_locale():
     return request.accept_languages.best_match(LANGUAGES.keys())
 
 
+@app.context_processor
+def utility_functions():
+    def print_in_console(message):
+        print(str(message))
+
+    return dict(mdebug=print_in_console)
+
+
 @app.errorhandler(404)
 def not_found(error):
     return render_template('404.html'), 404
