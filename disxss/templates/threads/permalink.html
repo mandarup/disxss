@@ -190,7 +190,23 @@ $(document).ready(function() {
                     var write_string =
                         '<div class="row comments-element" name="'+ response.comment_id + '"' +
                         'style="margin-left:' + response.margin_left + '">' +
-                        '<p class="comment-body">' + response.comment_text + '</p>' +
+
+                        '<div class="col-lg-9 listing-vote-box">' +
+                            '{% if user is defined and user != None and' + response.user_has_voted + ' %}' +
+                                '<a data-voted="true" style="color:#eb6864;" href="javascript:void(0)" '+
+                                    'class="listing-vote-button" id="comment-vote">▲</a>' +
+                            '{% else %}' +
+                                '<a data-voted="false" style="color:#000;" href="javascript:void(0)"'+
+                                    'class="listing-vote-button" id="comment-vote">▲</a>' +
+                            '{% endif %}' +
+                            '<div class="row listing-votes-number">' +
+                                ' '+  response.num_votes +
+                            '</div>' +
+                        '</div>' +
+                        '<p class="comment-body">' +
+                            ' ' + response.comment_text +
+                        '</p>' +
+
                         '<div class="post-listing-meta">' +
                         'by: <a href="/users/{{ user.username }}/">' +
                         '{{ user.username }}</a>' +
@@ -199,8 +215,8 @@ $(document).ready(function() {
                         '</div>' +
                         '<textarea class="nested-comment-text-box form-control"></textarea>' +
                         '<button class="btn btn-sm btn-primary submit-comment ' +
-                        'nested-submit-comment-button">Submit</button>';
-
+                                        'nested-submit-comment-button">Submit' +
+                        '</button>';
                     if (not_nested == 'true') {
                         $('div.comments-tree').prepend(write_string);
                     } else {
