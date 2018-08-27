@@ -559,10 +559,83 @@ class Comment(Document):
         elif typeof == 'updated':
             return utils.pretty_date(self.date_modified)
 
-    def vote(self, direction):
+    def has_voted(self, user_id):
         """
+        did the user vote already
         """
-        pass
+
+        select_votes = (CommentUpvote
+                        .find({"$and": [{"user_id": ObjectId(user_id)},
+                          {"comment_id": self.id}]})).count()
+
+        return False if select_votes == 0 else True
+
+
+    def vote(self, user_id):
+        """
+        allow a user to vote on a thread. if we have voted already
+        (and they are clicking again), this means that they are trying
+        to unvote the thread, return status of the vote for that user
+        """
+        already_voted = self.has_voted(user_id)
+        vote_status = None
+        if not already_voted:
+            # vote up the thread
+            # db.engine.execute(
+            #     thread_upvotes.insert(),
+            #     user_id   = user_id,
+            #     thread_id = self.id
+            # )
+
+            upvote_data = {
+                    "user_id" : ObjectId(user_id),
+                    "comment_id" : self.id
+            }
+            upvote = CommentUpvote(**upvote_data)
+            upvote.commit()
+
+            query = {"$and":[{"user_id":ObjectId(user_id)},
+                            {"comment_id":ObjectId(self.id)}]}
+            app.logger.debug("is created {}"
+                            .format(CommentUpvote.find_one(query).is_created))
+
+            self.num_votes = self.num_votes + 1
+            vote_status = True
+        else:
+
+            query = {"$and":[{"user_id":ObjectId(user_id)},
+                            {"comment_id":ObjectId(self.id)}]}
+            app.logger.debug("comment_id: {}".format(self.id))
+            app.logger.debug(CommentUpvote.find(query).count())
+
+            app.logger.debug(CommentUpvote.__dict__)
+            app.logger.debug(CommentUpvote.opts.__dict__)
+
+            # NOTE: Document.delete does not take query, but Document itself
+            # upvote = CommentUpvote.delete(query)
+
+            upvoted_comment = CommentUpvote.find_one(query)
+            if upvoted_comment:
+                upvote = CommentUpvote.delete(upvoted_comment)
+
+            app.logger.debug("upvoted_comment: {}".format(upvoted_comment))
+            # upvote.commit()
+
+            # NOTE: othe alternative is using pymongo api
+            # upvote = db.thread_upvotes.remove(query)
+            # NOTE: no need to do save:
+            # db.thread_upvotes.save()
+
+            # app.logger.debug(upvote)
+
+            self.num_votes = self.num_votes - 1
+            vote_status = False
+
+        app.logger.debug("vote_status: {}".format(vote_status))
+
+        self.commit()
+        # db.session.commit() # for the vote count
+        return vote_status
 
     def comment_on(self):
         """

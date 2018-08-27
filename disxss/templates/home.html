@@ -15,10 +15,10 @@
               <div class="">
                   {% if user is defined and user != None and thread.has_voted(user.id) %}
                       <a data-voted="true" style="color:#eb6864;" href="javascript:void(0)"
-                          class="listing-vote-button">▲</a>
+                          class="listing-vote-button" id="thread-vote">▲</a>
                   {% else %}
                       <a data-voted="false" style="color:#000;" href="javascript:void(0)"
-                          class="listing-vote-button">▲</a>
+                          class="listing-vote-button" id="thread-vote">▲</a>
                   {% endif %}
               </div>
               <div class="listing-votes-number">
@@ -180,7 +180,7 @@ $.ajaxSetup({
 });
 
 $(document).ready(function() {
-    $(document).on('click', 'a.listing-vote-button', function() {
+    $(document).on('click', '#thread-vote', function() {
         var $vote_button = $(this); // cache this! can't access in callback!
         var thread_id = $vote_button.parent().parent().parent().attr('name');
         var post_to = '/apis/threads/vote/';

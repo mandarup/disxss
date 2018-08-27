@@ -84,5 +84,5 @@ def vote_comment():
         abort(404)
 
     comment = Comment.find_one({"id": ObjectId(comment_id)})
-    comment.vote(user_id=user_id)
-    return jsonify(new_votes=comment.get_votes())
+    vote_status = comment.vote(user_id=user_id)
+    return jsonify(new_votes=comment.num_votes, vote_status=vote_status)
