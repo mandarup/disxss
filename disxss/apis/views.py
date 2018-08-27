@@ -38,18 +38,28 @@ def submit_comment():
     app.logger.debug("thread_id: {}".format(thread_id))
     app.logger.debug("comment_text: {}".format(comment_text))
     app.logger.debug("comment_parent_id: {}".format(comment_parent_id))
-
+    app.logger.debug("in apis.views.submit_comment")
 
     if not comment_text:
         abort(404)
 
+    for thread in Thread.find():
+        app.logger.debug(thread)
+    app.logger.debug("num threads: {}".format(Thread.find().count()))
     thread = Thread.find_one({"id": ObjectId(thread_id)})
+    app.logger.debug(thread)
+    # app.logger.debug(list(thread))
     comment = thread.add_comment(comment_text, comment_parent_id,
             g.user.id)
 
+    user_has_voted = comment.has_voted(g.user.id)
+    num_votes = comment.num_votes
+
     return jsonify(comment_text=comment.text, date=comment.pretty_date(),
             username=g.user.username, comment_id=str(comment.id),
-            margin_left=comment.get_margin_left())
+            margin_left=comment.get_margin_left(),
+            user_has_voted=user_has_voted,
+            num_votes=num_votes)
 
 @bp.route('/threads/vote/', methods=['POST'])
 @requires_login
@@ -84,5 +94,5 @@ def vote_comment():
         abort(404)
 
     comment = Comment.find_one({"id": ObjectId(comment_id)})
-    comment.vote(user_id=user_id)
-    return jsonify(new_votes=comment.get_votes())
+    vote_status = comment.vote(user_id=user_id)
+    return jsonify(new_votes=comment.num_votes, vote_status=vote_status)
