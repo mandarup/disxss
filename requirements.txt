@@ -11,3 +11,7 @@ requests>=2.2.1
 flask-pymongo
 beautifulsoup4
 markdown2
+flask-babel>=0.11.2
+marshmallow>=2.15
+umongo>=0.15.0
+easydict>=1.8
