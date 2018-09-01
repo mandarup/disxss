@@ -7,7 +7,7 @@ from bson import ObjectId
 
 # TODO: frontends, db imports
 # # from flask_reddit import db
-from disxss.frontends.views import get_subreddits
+from disxss.frontends.views import get_categories
 
 from disxss.users.models import User, dump_user_no_pass
 from disxss.threads.models import Thread
@@ -46,7 +46,7 @@ def home_page(username=None):
         abort(404)
     return render_template('users/profile.html',
             user=user, current_user=user,
-            subreddits = get_subreddits(),
+            categories = get_categories(),
             )
 
 

@@ -7,7 +7,7 @@ from disxss.threads.models import Thread
 from disxss.threads.models import Comment
 from disxss.threads.models import CommentUpvote
 from disxss.threads.models import ThreadUpvote
-from disxss.subreddits.models import Subreddit
+from disxss.categories.models import Category
 
 
 def init_db():
@@ -44,10 +44,10 @@ def init_db():
 
 
     try:
-        Subreddit.collection.drop()
+        Category.collection.drop()
     except Exception as e:
         print(str(e))
-    Subreddit.ensure_indexes()
+    Category.ensure_indexes()
 
 
 def populate_db():
@@ -78,20 +78,20 @@ def populate_db():
         User(**data).commit()
 
     a_user = User.find_one()
-    _new_subreddit = {"name":"test_subreddit",
+    _new_category = {"name":"test_category",
                         "desc":"test desc",
                         "admin_id":a_user.id,
                         "admin": a_user}
-    new_subreddit = Subreddit(**_new_subreddit)
-    new_subreddit.commit()
+    new_category = Category(**_new_category)
+    new_category.commit()
 
 
     thread_data = {"title":"test thread", "link":"disxss.com",
             "text":"not alive",
             "user_id":a_user.id,
-            "subreddit_id":Subreddit.find_one().id,
+            "category_id":Category.find_one().id,
             "user": a_user,
-            "subreddit": Subreddit.find_one()}
+            "category": Category.find_one()}
     thread = Thread(**thread_data)
     thread.update()
     thread.commit()

@@ -19,7 +19,7 @@ from disxss.users.models import User
 from disxss.users.decorators import requires_login
 from disxss import app
 from disxss.threads.models import Thread
-from disxss.subreddits.models import Subreddit
+from disxss.categories.models import Category
 from disxss import search_utils # don't override function name
 
 from disxss import db
@@ -37,35 +37,35 @@ def before_request():
         # g.user = User.query.get(session['user_id'])
         # g.user = User(document=users.find_one_or_404({'_id': ObjectId(session['user_id'])}))
 
-def home_subreddit():
+def home_category():
 
     #TODO: convert to mongodb
-    # return Subreddit.query.get_or_404(1)
+    # return Category.query.get_or_404(1)
 
-    s = Subreddit.find_one({})
+    s = Category.find_one({})
     if s is None:
         # abort(404)
-        flash("There are no subreddits yet, create one!")
+        flash("There are no categories yet, create one!")
     return s
 
-def get_subreddits():
+def get_categories():
     """
     important and widely imported method because a list of
-    the top 30 subreddits are present on every page in the sidebar
+    the top 30 categories are present on every page in the sidebar
     """
 
     # TODO:
     # convert to mongodb
-    # subreddits = []
-    # subreddits = Subreddit.query.filter(Subreddit.id != 1)[:25]
-    subreddits = Subreddit.find({"id": {"$ne": 1}})[:25]
-    app.logger.debug("in frontends.views: subreddits: {}".format(subreddits))
-    return subreddits
+    # categories = []
+    # categories = Category.query.filter(Category.id != 1)[:25]
+    categories = Category.find({"id": {"$ne": 1}})[:25]
+    app.logger.debug("in frontends.views: categories: {}".format(categories))
+    return categories
 
-def process_thread_paginator(trending=False, rs=None, subreddit=None):
+def process_thread_paginator(trending=False, rs=None, category=None):
     """
     abstracted because many sources pull from a thread listing
-    source (subreddit permalink, homepage, etc)
+    source (category permalink, homepage, etc)
     """
     threads_per_page = 15
     cur_page = request.args.get('page') or 1
@@ -82,14 +82,14 @@ def process_thread_paginator(trending=False, rs=None, subreddit=None):
         return thread_paginator
 
     # sexy line of code :)
-    app.logger.debug("subreddit: {}".format(subreddit))
-    if subreddit is not None:
-        app.logger.debug("subreddit.threads: {}".format(subreddit.get_threads()))
+    app.logger.debug("category: {}".format(category))
+    if category is not None:
+        app.logger.debug("category.threads: {}".format(category.get_threads()))
     app.logger.debug("Thread: {}".format(Thread.find()))
     def get_base_query():
-        if subreddit is not None and subreddit.get_threads() is not None:
-            app.logger.debug("subreddit.threads: {}".format(subreddit.get_threads()))
-            return subreddit.get_threads()
+        if category is not None and category.get_threads() is not None:
+            app.logger.debug("category.threads: {}".format(category.get_threads()))
+            return category.get_threads()
         else:
             return Thread.find()
 
@@ -115,8 +115,8 @@ def home(trending=False):
     If not trending we order by creation date
     """
     trending = True if request.args.get('trending') else trending
-    subreddits = get_subreddits()
-    app.logger.debug("subreddits: {}".format([x for x in subreddits]))
+    categories = get_categories()
+    app.logger.debug("categories: {}".format([x for x in categories]))
 
     #---------------------------------------------------------------------
     # TODO: fix pagination
@@ -127,8 +127,8 @@ def home(trending=False):
 
 
     return render_template('home.html', user=g.user,
-            subreddits=subreddits,
-            cur_subreddit=home_subreddit(),
+            categories=categories,
+            cur_category=home_category(),
             thread_paginator=thread_paginator)
 
 @bp.route('/search/', methods=['GET'])
@@ -147,10 +147,10 @@ def search():
     if rs:
         num_searches = rs.count()
 
-    subreddits = get_subreddits()
+    categories = get_categories()
 
     return render_template('home.html', user=g.user,
-            subreddits=subreddits, cur_subreddit=home_subreddit(),
+            categories=categories, cur_category=home_category(),
             thread_paginator=thread_paginator, num_searches=num_searches)
 
 @bp.route('/login/', methods=['GET', 'POST'])

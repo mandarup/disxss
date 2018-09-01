@@ -9,7 +9,7 @@ from disxss import app
 
 
 def search(query, orderby='date_created', filter_user=None, search_title=True,
-            search_text=True, subreddit=None, limit=100):
+            search_text=True, category=None, limit=100):
     """
     search for threads (and maybe comments in the future)
     """
@@ -36,8 +36,8 @@ def search(query, orderby='date_created', filter_user=None, search_title=True,
     query_res = Thread.find({"$text": {"$search": base_query}})
 
 
-    # TODO: Searching by subreddit requires joining, leave out for now.
-    # subreddit_clause = Thread.subreddit.name.like(subreddit.name) if subreddit else False
+    # TODO: Searching by category requires joining, leave out for now.
+    # category_clause = Thread.category.name.like(category.name) if category else False
 
     # or_clause = db.or_(title_clause, text_clause)
 

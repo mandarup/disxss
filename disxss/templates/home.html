@@ -33,20 +33,20 @@
                     <a href="{{ thread.link }}" class="listing-title">
               {% else %}
                     <a href="{{ url_for('threads.thread_permalink',
-                                  subreddit_name=thread.subreddit.fetch().name,
+                                  category_name=thread.category.fetch().name,
                                   thread_id=thread.id,
                                   title=thread.title) }}">
-                       {# href="{{ config.ROOT_URL }}/threads/{{ thread.subreddit.fetch().name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}/" class="listing-title"> #}
+                       {# href="{{ config.ROOT_URL }}/threads/{{ thread.category.fetch().name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}/" class="listing-title"> #}
               {% endif %}
                 <h4 class="listing-title-text">{{ thread.title }}</h4>
               </a>
 
               <div class="post-listing-meta">
                   <a href="{{ url_for('threads.thread_permalink',
-                                subreddit_name=thread.subreddit.fetch().name,
+                                category_name=thread.category.fetch().name,
                                 thread_id=thread.id,
                                 title=thread.title) }}">
-                      <!-- {# href="{{ config.ROOT_URL }}/threads/{{ thread.subreddit.fetch().name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}/" > #} -->
+                      <!-- {# href="{{ config.ROOT_URL }}/threads/{{ thread.category.fetch().name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}/" > #} -->
                       {#<!-- {{ thread.comments()|length() }} comments -->#}
 
                       {{ thread.get_comment_count() }} comments
@@ -56,9 +56,9 @@
                         username=thread.user.fetch().username) }}">
                         {{ thread.user.fetch().username }}</a>
                     in
-                    <a href="{{ url_for('subreddits.permalink',
-                        subreddit_name=thread.subreddit.fetch().name) }}">
-                        {{ thread.subreddit.fetch().name }}
+                    <a href="{{ url_for('categories.permalink',
+                        category_name=thread.category.fetch().name) }}">
+                        {{ thread.category.fetch().name }}
                     </a>
               </div>
           </div>
@@ -111,26 +111,26 @@
 
         </form>
 
-        {% if cur_subreddit is defined and cur_subreddit != None %}
-            <a href="{{ url_for('threads.submit', subreddit_name=cur_subreddit.name) }}">
+        {% if cur_category is defined and cur_category != None %}
+            <a href="{{ url_for('threads.submit', category_name=cur_category.name) }}">
                 <button class="btn btn-primary submit-post-button">
-                    submit to {{ cur_subreddit.name }}</button>
+                    submit to {{ cur_category.name }}</button>
             </a>
         {% else %}
-            <a href="{{ url_for('threads.submit', subreddit_name='frontpage') }}">
+            <a href="{{ url_for('threads.submit', category_name='frontpage') }}">
                 <button class="btn btn-primary submit-post-button">submit post</button></a>
         {% endif %}
     </div>
 
     <div class="row">
-        <a href="{{ url_for('subreddits.submit') }}">
+        <a href="{{ url_for('categories.submit') }}">
             <button type="button" class="btn btn-primary
-        inverse-white-button add-subreddit-button">create community +</button></a>
+        inverse-white-button add-category-button">create community +</button></a>
     </div>
 
-    {% if cur_subreddit is defined %}
-    <p class="subreddit-desc">
-        {{ cur_subreddit.desc }}
+    {% if cur_category is defined %}
+    <p class="category-desc">
+        {{ cur_category.desc }}
     </p>
     {% endif %}
 
@@ -140,13 +140,13 @@
 
 
 
-    <h4 class="subreddit-desc">Subreddits</h4>
-    <ul id="subreddit-list">
-        {% for subreddit in subreddits %}
-        <li><a href="/r/{{ subreddit.name }}">{{ subreddit.name }}</a></li>
+    <h4 class="category-desc">Categories</h4>
+    <ul id="category-list">
+        {% for category in categories %}
+        <li><a href="/r/{{ category.name }}">{{ category.name }}</a></li>
         {% endfor %}
     </ul>
-    <a class="align-right-col" href="{{ url_for('subreddits.view_all') }}">view all</a>
+    <a class="align-right-col" href="{{ url_for('categories.view_all') }}">view all</a>
     <i>
     <div class="align-right-col byline-lucas">Built by:
         <a href="https://disxss.com">Free Throw </a>.

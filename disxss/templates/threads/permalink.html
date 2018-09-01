@@ -29,8 +29,8 @@
         <a href="{{ thread.link }}"><h2 class="listing-title">{{ thread.title }}</h2></a>
         created {{ thread.pretty_date('created') }},
         by <a href="{{ url_for('users.home_page', username=thread.user.fetch().username) }}">
-            {{ thread.user.fetch().username }}.</a> in <a href="{{ url_for('subreddits.permalink',
-                subreddit_name=thread.subreddit.fetch().name) }}">{{ thread.subreddit.fetch().name }}</a>
+            {{ thread.user.fetch().username }}.</a> in <a href="{{ url_for('categories.permalink',
+                category_name=thread.category.fetch().name) }}">{{ thread.category.fetch().name }}</a>
         <br>
         <br>
         <p class="thread-text">{{ thread.text }}</p>

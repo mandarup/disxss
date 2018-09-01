@@ -120,7 +120,7 @@ from disxss.threads.models import Thread, Comment
 #         # users = Manager.from_queryset( UserQuerySet)
 #
 #     # TODO:
-#     # define getters for comments, threads, subreddits
+#     # define getters for comments, threads, categories
 #
 #     # def set_password(self, password):
 #     #     self.password = generate_password_hash(password)

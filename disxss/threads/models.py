@@ -23,7 +23,7 @@ from disxss import utils
 from disxss import media
 from disxss import instance
 from disxss.users import models as user_model
-from disxss.subreddits import models as subreddits_model
+from disxss.categories import models as categories_model
 from disxss import app
 from disxss import db
 
@@ -86,10 +86,10 @@ class Thread(Document):
 
     # NOTE: this should be ReferenceField
     user_id = fields.ObjectIdField() # Integer?
-    subreddit_id = fields.ObjectIdField() #
+    category_id = fields.ObjectIdField() #
 
     user = fields.ReferenceField("User") # Integer?
-    subreddit = fields.ReferenceField("Subreddit")
+    category = fields.ReferenceField("Category")
 
     comment_ids = fields.ListField(fields.ObjectIdField())
     comments = fields.ListField(fields.ReferenceField("Comment"))
@@ -110,7 +110,7 @@ class Thread(Document):
         if not self.date_created:
             self.date_created = datetime.datetime.now()
         self.date_modified = datetime.datetime.now()
-        # self.subreddit = self.get_subreddit()
+        # self.category = self.get_category()
         # self.user = self.get_user()
         self.set_hotness()
         self.extract_thumbnail()
@@ -122,19 +122,19 @@ class Thread(Document):
         indexes = ('username', '$text', 'title')
 
 
-    # def get_subreddit(self):
-    #     return subreddits_model.Subreddit.find({"id": self.subreddit_id})[0]
+    # def get_category(self):
+    #     return categories_model.Category.find({"id": self.category_id})[0]
 
     # def get_user(self):
     #     return user_model.User.find({"id": self.user_id})[0]
 
 
-    # def __init__(self, title, text, link, user_id, subreddit_id):
+    # def __init__(self, title, text, link, user_id, category_id):
     #     self.title = title
     #     self.text = text
     #     self.link = link
     #     self.user_id = user_id
-    #     self.subreddit_id = subreddit_id
+    #     self.category_id = category_id
     #     self.extract_thumbnail()
     #
     #     self.created_on = datetime.datetime.utcnow()
@@ -151,7 +151,7 @@ class Thread(Document):
     #               "text" : self.text,
     #               "link": self.link,
     #               "user_id": self.user_id,
-    #               "subreddit_id": self.subreddit_id,
+    #               "category_id": self.category_id,
     #               "created_on": self.created_on,
     #               "updated_on": self.updated_on,
     #               "upvotes": self.upvotes,

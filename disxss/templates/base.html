@@ -42,8 +42,8 @@
           <ul class="nav navbar-nav">
               <li>
                   <a class="brand-nav" href="/">
-                      {% if cur_subreddit is defined and cur_subreddit.id != 1 %}
-                          {{ cur_subreddit.name }}
+                      {% if cur_category is defined and cur_category.id != 1 %}
+                          {{ cur_category.name }}
                       {% else %}
                           {{ config.BRAND }}
                       {% endif %}

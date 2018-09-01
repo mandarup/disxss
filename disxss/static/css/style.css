@@ -60,27 +60,27 @@ div.spacer {
     border-color: #eb6864;
 }
 
-.add-subreddit-button {
+.add-category-button {
     margin-bottom: 21px;
 }
 
-.add-subreddit-button:hover, .add-subreddit-button:focus {
+.add-category-button:hover, .add-category-button:focus {
     color: #eb6864;
     background-color: #FFF5F5;
     border-color: #eb6864;
 }
 
-#subreddit-list {
+#category-list {
     padding-left: 0px;
     margin-bottom: 21px;
 }
 
-#subreddit-list, a {
+#category-list, a {
     color: #000;
     text-decoration: none;
 }
 
-#subreddit-list a:hover, #subreddit-list a:focus {
+#category-list a:hover, #category-list a:focus {
     color: #eb6864;
     text-decoration: underline;
 }
@@ -159,7 +159,7 @@ div.spacer {
     text-decoration: underline;
 }
 
-.all-subreddits-label {
+.all-categories-label {
     margin: 0px 0 20px 0px;
 }
 
@@ -288,7 +288,7 @@ div.github-fork-text {
     margin-left: -17px;
 }
 
-.subreddit-desc {
+.category-desc {
     margin-left: -17px;
     width: 270px;
     margin-bottom: 21px;

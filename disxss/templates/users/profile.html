@@ -20,9 +20,9 @@
                         <a class="profile-listing" href="{{ thread.link }}">{{ thread.title }}</a>
                             <br>
                             <span class="profile-listing-inline"> posted
-                            <a href="/threads/{{ thread.subreddit.fetch().name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}">
+                            <a href="/threads/{{ thread.category.fetch().name }}/{{ thread.id }}/{{ thread.title|truncate(100)|replace(' ', '_') }}">
                                 {{ thread.pretty_date() }}</a> in
-                            <a href="/r/{{ thread.subreddit.fetch().name }}">{{ thread.subreddit.fetch().name }}</a>
+                            <a href="/r/{{ thread.category.fetch().name }}">{{ thread.category.fetch().name }}</a>
                             </span>
                         </p>
                     {% endfor %}
@@ -33,7 +33,7 @@
                         <p>
                         <span class="profile-listing">{{ comment.text }}</span>
                         <span class="profile-listing-inline">
-                        <a href="/threads/{{ comment.thread.fetch().subreddit.fetch().name }}/{{ comment.thread.fetch().id }}/{{ comment.thread.fetch().title|truncate(100)|replace(' ', '_') }}">{{ comment.pretty_date() }}</a>
+                        <a href="/threads/{{ comment.thread.fetch().category.fetch().name }}/{{ comment.thread.fetch().id }}/{{ comment.thread.fetch().title|truncate(100)|replace(' ', '_') }}">{{ comment.pretty_date() }}</a>
                         </p>
                         </span>
                     {% endfor %}

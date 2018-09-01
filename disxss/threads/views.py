@@ -12,8 +12,8 @@ from flask import (Blueprint, request, render_template, flash, g, session,
 from disxss.threads.forms import SubmitForm
 from disxss.threads.models import Thread
 from disxss.users.models import User
-from disxss.subreddits.models import Subreddit
-from disxss.frontends.views import get_subreddits
+from disxss.categories.models import Category
+from disxss.frontends.views import get_categories
 from disxss import db
 from disxss import app
 
@@ -48,8 +48,8 @@ def meets_thread_criteria(thread):
 
     return True
 
-@bp.route('/<subreddit_name>/submit/', methods=['GET', 'POST'])
-def submit(subreddit_name=None):
+@bp.route('/<category_name>/submit/', methods=['GET', 'POST'])
+def submit(category_name=None):
     """
     """
     if g.user is None:
@@ -58,12 +58,12 @@ def submit(subreddit_name=None):
     user_id = g.user.id
 
 
-    subreddits = Subreddit.find({"name":subreddit_name})
-    subreddit = None
-    if subreddits.count() > 0:
-        subreddit = subreddits[0]
-    if not subreddit:
-        flash('Select a subreddit!', 'danger')
+    categories = Category.find({"name":category_name})
+    category = None
+    if categories.count() > 0:
+        category = categories[0]
+    if not category:
+        flash('Select a category!', 'danger')
         # abort(404)
         return redirect(url_for('frontends.home', next=request.path))
 
@@ -75,21 +75,21 @@ def submit(subreddit_name=None):
         text = form.text.data.strip()
 
         thread_data = {"title":title, "link":link, "text":text,
-                "user_id":user_id, "subreddit_id":subreddit.id,
+                "user_id":user_id, "category_id":category.id,
                 "user": g.user,
-                "subreddit": subreddit}
+                "category": category}
         thread = Thread(**thread_data)
 
         if not meets_thread_criteria(thread):
             return render_template('threads/submit.html', form=form, user=g.user,
-                cur_subreddit=subreddit.name)
+                cur_category=category.name)
 
         thread.update()
         thread.commit()
-        app.logger.debug("adding thread: subreddit name: {}"
-                         .format(thread.subreddit))
-        app.logger.debug("adding thread: subreddit name: {}"
-                         .format(thread.subreddit.fetch().name))
+        app.logger.debug("adding thread: category name: {}"
+                         .format(thread.category))
+        app.logger.debug("adding thread: category name: {}"
+                         .format(thread.category.fetch().name))
         # db.threads.add_thread
         # db.session.add(thread)
         # db.session.commit()
@@ -98,9 +98,9 @@ def submit(subreddit_name=None):
         # thread.add_thread()
 
         flash('thanks for submitting!', 'success')
-        return redirect(url_for('subreddits.permalink', subreddit_name=subreddit.name))
+        return redirect(url_for('categories.permalink', category_name=category.name))
     return render_template('threads/submit.html', form=form, user=g.user,
-            cur_subreddit=subreddit, subreddits=get_subreddits())
+            cur_category=category, categories=get_categories())
 
 @bp.route('/delete/', methods=['GET', 'POST'])
 def delete():
@@ -114,19 +114,19 @@ def edit():
     """
     pass
 
-@bp.route('/<subreddit_name>/<thread_id>/<path:title>/', methods=['GET', 'POST'])
-def thread_permalink(subreddit_name=None, thread_id=None, title=None):
+@bp.route('/<category_name>/<thread_id>/<path:title>/', methods=['GET', 'POST'])
+def thread_permalink(category_name=None, thread_id=None, title=None):
     """
     """
     thread_id = thread_id #or -99
     app.logger.debug("thread_id: {}".format(thread_id))
     thread = Thread.find_one({"id": ObjectId(thread_id)})
 
-    app.logger.debug(Subreddit.find({"name":subreddit_name}))
-    subreddit = Subreddit.find_one({"name":subreddit_name})
-    subreddits = get_subreddits()
+    app.logger.debug(Category.find({"name":category_name}))
+    category = Category.find_one({"name":category_name})
+    categories = get_categories()
     return render_template('threads/permalink.html', user=g.user, thread=thread,
-            cur_subreddit=subreddit, subreddits=subreddits)
+            cur_category=category, categories=categories)
 
 
 ##########################
