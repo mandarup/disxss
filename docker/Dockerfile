@@ -31,8 +31,8 @@ RUN python3.6 -m pip install pip --upgrade
 RUN python3.6 -m pip install wheel
 RUN python3.6 -m pip install --upgrade jupyter flask pymongo
 
+# install requirements
 RUN python3.6 -m pip install -r /tmp/requirements.txt
-
 
 
 # Install MongoDB.
@@ -47,12 +47,10 @@ RUN \
 # Define default command.
 CMD ["mongod &"]
 
+RUN cd /app/disxss
 
 # Expose ports.
 #   - 27017: process
 #   - 28017: http
 EXPOSE 27017
 EXPOSE 28017
-
-
-# CMD mongod &
