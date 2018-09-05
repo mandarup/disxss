@@ -64,9 +64,8 @@
 </div>
 
 <div class="row"></div>
-<br>
 <div>
-    <h4>Comments section</h4>
+    <h4>Comments</h4>
     <hr>
 </div>
 
@@ -119,6 +118,34 @@
 
 <br>
 <br>
+
+
+<div class="row"></div>
+<div>
+    <div class="col-lg-6 thread-answer-section">
+        {% if user is defined and user != None %}
+        <h5>Answer the question:</h5>
+        <div class="comment-form-parent">
+            <textarea class="form-control thread-answer-box"></textarea>
+            {#
+                <a href="{{ url_for('threads.submit_comment') }}">
+            #}
+                <button class="btn btn-sm btn-primary submit-comment main-submit">
+                         Submit</button>
+            {#
+                </a>
+            #}
+            {##}
+        </div>
+        {% else %}
+        <br>
+        <i>
+        <a href="{{ url_for('frontends.login') }}">Login</a> or
+        <a href="{{ url_for('frontends.register') }}">register</a> to comment!
+        </i>
+        {% endif %}
+    </div>
+</div>
 
 {% endblock %}
 
