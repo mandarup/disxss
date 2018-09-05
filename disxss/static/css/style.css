@@ -1,4 +1,4 @@
-/*  
+/*
  *  Here will be all of flask_reddit's custom CSS. Let's keep this
  *  fairly organized!
  */
@@ -182,6 +182,15 @@ div.spacer {
     margin-bottom: 10px;
 }
 
+.thread-answer-section {
+    padding-left: 0px;
+}
+
+.thread-answer-box {
+    height: 100px;
+    margin-bottom: 10px;
+}
+
 .logout-button {
     font-size:13px;
 }
@@ -263,12 +272,12 @@ div.github-fork-text {
 }
 
 .login-nav-text a {
-    color: #000; 
+    color: #000;
     text-decoration: underline;
 }
 
 .login-nav-text a:hover {
-    color: #eb6864; 
+    color: #eb6864;
     text-decoration: underline;
 }
 
