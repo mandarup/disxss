@@ -30,28 +30,29 @@
         created {{ thread.pretty_date('created') }},
         by <a href="{{ url_for('users.home_page', username=thread.user.fetch().username) }}">
             {{ thread.user.fetch().username }}.</a> in <a href="{{ url_for('categories.permalink',
-                category_name=thread.category.fetch().name) }}">{{ thread.category.fetch().name }}</a>
+                category_name=thread.category.fetch().name) }}">{{ thread.category.fetch().name }}
+            </a>
+            <a href="javascript:void(0)" class="comment main-submit">comment</a>
         <br>
         <br>
         <p class="thread-text">{{ thread.text }}</p>
     </div>
+    <textarea class="nested-comment-text-box form-control"></textarea>
+    <button class="btn btn-sm btn-primary submit-comment nested-submit-comment-button main-submit">
+        Submit</button>
 </div>
 
+
+{#
+<!--  disable comments on thread. either comment on question or answer -->
 <div>
     <div class="col-lg-6 thread-comment-section">
         {% if user is defined and user != None %}
         <h5>Submit a comment:</h5>
         <div class="comment-form-parent">
             <textarea class="form-control thread-comment-box"></textarea>
-            {#
-                <a href="{{ url_for('threads.submit_comment') }}">
-            #}
                 <button class="btn btn-sm btn-primary submit-comment main-submit">
                          Submit</button>
-            {#
-                </a>
-            #}
-            {##}
         </div>
         {% else %}
         <br>
@@ -62,6 +63,7 @@
         {% endif %}
     </div>
 </div>
+#}
 
 <div class="row"></div>
 <div>
@@ -104,7 +106,9 @@
                     {{ comment.user.fetch().username }}</a>
 
                     {{ comment.pretty_date() }}
-                <a href="javascript:void(0)" class="comment-reply">reply</a>
+
+                    {# link for comment reply #}
+                    <a href="javascript:void(0)" class="comment-reply">comment</a>
             </div>
             <textarea class="nested-comment-text-box form-control"></textarea>
             <button class="btn btn-sm btn-primary submit-comment nested-submit-comment-button">
@@ -127,15 +131,9 @@
         <h5>Answer the question:</h5>
         <div class="comment-form-parent">
             <textarea class="form-control thread-answer-box"></textarea>
-            {#
-                <a href="{{ url_for('threads.submit_comment') }}">
-            #}
-                <button class="btn btn-sm btn-primary submit-comment main-submit">
-                         Submit</button>
-            {#
-                </a>
-            #}
-            {##}
+            <button class="btn btn-sm btn-primary submit-comment main-submit">
+                     Submit</button>
+
         </div>
         {% else %}
         <br>
@@ -177,9 +175,14 @@ $(document).ready(function() {
         // Don't need to include parent comment because we are commenting
         // on a thread, not a comment!
         var parent_id = "";
+        var parent_type = "";
         var comment_text = "";
         var not_nested =  $(this).hasClass('main-submit').toString();
         var $parent_comment = $(this).parent('div.comments-element');
+
+        console.log("not_nested", not_nested);
+        console.log("$parent_comment", $parent_comment);
+
         // the logic is funky because we are using string booleans...
         if (not_nested == 'false') {
             // it is nested
@@ -195,11 +198,31 @@ $(document).ready(function() {
 
         } else {
             // it isn't nested
-            $comment_box = $(this).parent('div.comment-form-parent').children(
-                'textarea.thread-comment-box');
+            console.log($(this))
+            // $comment_box = $(this).parent('div.comment-form-parent').children(
+            //     'textarea.thread-comment-box');
+            // comment_text = $comment_box.val();
+            // $comment_box.val('');
+
+
+            parent_id = $(this).parent('div.thread-permalink').attr('name');
+            parent_type = "question";
+            console.log("parent_id", parent_id);
+
+            $comment_box = $(this).parent('div.thread-permalink').children(
+                'textarea.nested-comment-text-box')
+            $button_box = $(this).parent('div.thread-permalink').children(
+                'button.nested-submit-comment-button');
             comment_text = $comment_box.val();
+
             $comment_box.val('');
+            $button_box.toggle();
+            $comment_box.toggle();
+
         }
+
+        console.log("comment_text", comment_text);
+
 
         if (comment_text == null || comment_text == '') {
             alert("Please enter a valid comment!");
@@ -212,7 +235,8 @@ $(document).ready(function() {
             $.post(post_to, {
                 parent_id: parent_id, // empty if top-level (none)
                 thread_id: thread_id,
-                comment_text: comment_text },
+                comment_text: comment_text,
+                parent_type: parent_type},
                 function(response) {
                     var write_string =
                         '<div class="row comments-element" name="'+ response.comment_id + '"' +
@@ -238,7 +262,7 @@ $(document).ready(function() {
                         'by: <a href="/users/{{ user.username }}/">' +
                         '{{ user.username }}</a>' +
                         ' ' + response.date +
-                        ' <a href="javascript:void(0)" class="comment-reply">reply</a>' +
+                        ' <a href="javascript:void(0)" class="comment-reply">comment</a>' +
                         '</div>' +
                         '<textarea class="nested-comment-text-box form-control"></textarea>' +
                         '<button class="btn btn-sm btn-primary submit-comment ' +
@@ -256,12 +280,20 @@ $(document).ready(function() {
         {% endif %}
     });
 
+    {# toggle nested comment #}
     $(document).on('click', 'a.comment-reply', function(e) {
         $(this).parent().parent().children('textarea.nested-comment-text-box').toggle();
         $(this).parent().parent().children('button.nested-submit-comment-button').toggle();
     });
 
+    {# toggle main comment #}
+    $(document).on('click', 'a.comment', function(e) {
+        $(this).parent().parent().children('textarea.nested-comment-text-box').toggle();
+        $(this).parent().parent().children('button.nested-submit-comment-button').toggle();
+    });
 
+
+    {# toggle comment vote #}
     $(document).on('click', '#comment-vote', function() {
         var $vote_button = $(this); // cache this! can't access in callback!
         console.log("vote_button", $vote_button);

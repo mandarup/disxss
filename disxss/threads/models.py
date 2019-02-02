@@ -219,7 +219,7 @@ class Thread(Document):
         elif typeof == 'updated':
             return utils.pretty_date(self.date_modified)
 
-    def add_comment(self, comment_text, comment_parent_id, user_id):
+    def add_comment(self, comment_text, comment_parent_id, user_id, parent_type):
         """
         add a comment to this particular thread
         """
@@ -241,7 +241,8 @@ class Thread(Document):
                                 user=user,
                                 thread=self,
                                 date_created=datetime.datetime.now(),
-                                date_modified=datetime.datetime.now())
+                                date_modified=datetime.datetime.now(),
+                                parent_type=parent_type)
         else:
             comment = Comment(thread_id=ObjectId(self.id),
                     user_id=ObjectId(user_id),
@@ -249,10 +250,11 @@ class Thread(Document):
                     user=user,
                     thread=self,
                     date_created=datetime.datetime.now(),
-                    date_modified=datetime.datetime.now())
+                    date_modified=datetime.datetime.now(),
+                    parent_type=parent_type)
 
-        # db.session.add(comment)
-        # db.session.commit()
+        app.logger.debug(comment)
+        app.logger.debug("parent_type: {}".format(parent_type))
         comment.commit()
         comment.set_depth()
         app.logger.debug("comment depth: {}".format(comment.depth))
@@ -364,14 +366,27 @@ class Thread(Document):
         self.thumbnail = thumbnail
         self.commit()
 
+    # def get_comments(self):
+    #     app.logger.debug(list(Comment.find(
+    #         {"$and": [{"thread_id":self.id},
+    #                     {"parent":  { "$exists": True, "$eq": None }}]})))
+    #
+    #     comments = Comment.find(
+    #         {"$and": [{"thread_id":self.id},
+    #                     {"parent":  { "$exists": True, "$eq": None }}]})
+    #     # return list(Comment.find({"thread_id":self.id}))
+    #     return list(comments)
+
     def get_comments(self):
         app.logger.debug(list(Comment.find(
             {"$and": [{"thread_id":self.id},
-                        {"parent":  { "$exists": True, "$eq": None }}]})))
+                        {"parent":  { "$exists": True }},
+                        {"parent_id": self.id}]})))
 
         comments = Comment.find(
             {"$and": [{"thread_id":self.id},
-                        {"parent":  { "$exists": True, "$eq": None }}]})
+                        {"parent":  { "$exists": True}},
+                        {"parent_id": self.id}]})
         # return list(Comment.find({"thread_id":self.id}))
         return list(comments)
 
@@ -411,6 +426,8 @@ class Comment(Document):
     parent_id = fields.ObjectIdField(missing=None)
     # children = fields.ReferenceField('Comment')
     parent = fields.ReferenceField('Comment', missing=None)
+    parent_type = fields.StrField(missing=None, default=None,
+                    validate=validate.OneOf(['question', 'answer','comment']))
 
     depth = fields.IntField( default=1, missing=1) # start at depth 1
 
@@ -492,12 +509,11 @@ class Comment(Document):
             app.logger.debug("comment: {}".format(c))
             app.logger.debug("self.id, parent.id: {}".format((self.id, self.parent_id)))
 
-
         num_children = self.get_children_count()
         app.logger.debug("num_children: {}".format(num_children))
         app.logger.debug("children: \n{}".format([x for x in self.get_children()]))
-        # if num_children > 0:
-        if self.parent is not None:
+
+        if self.parent is not None and self.parent_type == "comment":
             self.depth = self.parent.fetch().depth + 1
             self.commit()
 
@@ -515,8 +531,8 @@ class Comment(Document):
             comments = (Comment.find({"parent_id":self.id})
                         .sort([("date_created", pymongo.ASCENDING)])
                         [:THREAD.MAX_COMMENTS])
-            app.logger.debug("".join(["\n\t{}: child of {}"
-                .format(x.text, x.parent.fetch().text)  for x in comments]))
+            # app.logger.debug("".join(["\n\t{}: child of {}"
+            #     .format(x.text, x.parent.fetch().text)  for x in comments]))
             comments = (Comment.find({"parent_id":self.id})
                         .sort([("date_created", pymongo.ASCENDING)])
                         [:THREAD.MAX_COMMENTS])

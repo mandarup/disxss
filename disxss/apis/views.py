@@ -34,11 +34,13 @@ def submit_comment():
     thread_id = request.form['thread_id']
     comment_text = request.form['comment_text']
     comment_parent_id = request.form['parent_id'] # empty means none
+    parent_type = request.form['parent_type']
 
     app.logger.debug("thread_id: {}".format(thread_id))
     app.logger.debug("comment_text: {}".format(comment_text))
     app.logger.debug("comment_parent_id: {}".format(comment_parent_id))
     app.logger.debug("in apis.views.submit_comment")
+    app.logger.debug("comment_parent_type: {}".format(parent_type))
 
     if not comment_text:
         abort(404)
@@ -50,7 +52,8 @@ def submit_comment():
     app.logger.debug(thread)
     # app.logger.debug(list(thread))
     comment = thread.add_comment(comment_text, comment_parent_id,
-            g.user.id)
+            g.user.id,
+            parent_type)
 
     user_has_voted = comment.has_voted(g.user.id)
     num_votes = comment.num_votes
