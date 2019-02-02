@@ -44,9 +44,13 @@ RUN \
   rm -rf /var/lib/apt/lists/*
 
 
+<<<<<<< Updated upstream
 # Define default command.
 CMD ["mongod &"]
 
+=======
+# RUN cd /app/disxss
+>>>>>>> Stashed changes
 
 # Expose ports.
 #   - 27017: process
@@ -54,5 +58,10 @@ CMD ["mongod &"]
 EXPOSE 27017
 EXPOSE 28017
 
+<<<<<<< Updated upstream
 
 # CMD mongod &
+=======
+# Define default command.
+CMD ["mongod &"]
+>>>>>>> Stashed changes

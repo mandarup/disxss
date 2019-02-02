@@ -8,4 +8,6 @@ db_utils.init_db()
 
 db_utils.populate_db()
 
+
 app.run(host='0.0.0.0', port=8080, debug=True)
+# app.run( port=8080, debug=True, ssl_context='adhoc')

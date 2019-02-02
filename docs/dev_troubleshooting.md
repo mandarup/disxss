@@ -7,13 +7,13 @@
 
 # 2. docker
 
-    $run -v $(pwd):/app/disxss -p 9000:8080  -it disxss:latest /bin/bash
+    $docker run -v $(pwd):/app/disxss -p 9000:8080  -it disxss:latest /bin/bash
 
 
 # 3. Once inside  docker, start mongodb and flask server
 
-    $ cd disxss
-    $ scripts/setup.sh
+    $ cd disxss && docker/startup.sh &
+
 
 
 # 4. In local machine, outside docker, in browser fetch url
